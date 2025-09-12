@@ -1,7 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Authorization;
 using affolterNET.Auth.Core.Configuration;
+using affolterNET.Auth.Core.Authorization;
 using affolterNET.Auth.Core.Middleware;
 using affolterNET.Auth.Core.Services;
 using NETCore.Keycloak.Client.HttpClients.Abstraction;
@@ -69,6 +71,20 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
+    /// Adds authorization policy services for permission-based authorization
+    /// </summary>
+    public static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services)
+    {
+        services.AddAuthorization();
+        
+        // Register custom authorization policy provider and handler
+        services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
+        services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        
+        return services;
+    }
+
+    /// <summary>
     /// Adds all authentication services including RPT and token refresh
     /// </summary>
     public static IServiceCollection AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
@@ -94,6 +110,15 @@ public static class ServiceCollectionExtensions
         services.AddHttpContextAccessor();
         
         return services;
+    }
+
+    /// <summary>
+    /// Adds complete authentication and authorization services including RPT, token refresh, and permission policies
+    /// </summary>
+    public static IServiceCollection AddCompleteAuthServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services.AddAuthenticationServices(configuration)
+                      .AddAuthorizationPolicies();
     }
 }
 

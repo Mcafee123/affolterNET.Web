@@ -6,6 +6,7 @@ using affolterNET.Auth.Core.Extensions;
 using affolterNET.Auth.Core.Services;
 using affolterNET.Auth.Bff.Configuration;
 using affolterNET.Auth.Bff.Services;
+using affolterNET.Auth.Bff.Middleware;
 
 namespace affolterNET.Auth.Bff.Extensions;
 
@@ -13,8 +14,8 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddBffAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        // Add core authentication services including token refresh
-        services.AddAuthenticationServices(configuration);
+        // Add core authentication services including token refresh and authorization policies
+        services.AddCompleteAuthServices(configuration);
         
         // Configure BFF-specific options
         services.Configure<BffAuthOptions>(configuration.GetSection(BffAuthOptions.SectionName));
@@ -87,5 +88,34 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddBffAuthenticationWithTokenRefresh(this IServiceCollection services, IConfiguration configuration)
     {
         return services.AddBffAuthentication(configuration);
+    }
+
+    /// <summary>
+    /// Adds BFF authentication with full authorization policies, token refresh, and RPT support
+    /// </summary>
+    public static IServiceCollection AddBffAuthenticationWithAuthorization(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services.AddBffAuthentication(configuration);
+    }
+
+    /// <summary>
+    /// Adds reverse proxy with authentication token forwarding
+    /// </summary>
+    public static IServiceCollection AddReverseProxyWithAuthTransform(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddReverseProxy()
+            .LoadFromConfig(configuration.GetSection("ReverseProxy"))
+            .AddTransforms<AuthTransform>();
+        
+        return services;
+    }
+
+    /// <summary>
+    /// Adds BFF authentication with reverse proxy and auth token forwarding
+    /// </summary>
+    public static IServiceCollection AddBffWithReverseProxy(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services.AddBffAuthentication(configuration)
+                      .AddReverseProxyWithAuthTransform(configuration);
     }
 }

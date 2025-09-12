@@ -13,8 +13,8 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApiAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        // Add core authentication services
-        services.AddAuthCore(configuration);
+        // Add core authentication services with authorization policies
+        services.AddCompleteAuthServices(configuration);
         
         // Configure API-specific options
         services.Configure<ApiAuthOptions>(configuration.GetSection(ApiAuthOptions.SectionName));
@@ -50,5 +50,13 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IClaimsEnrichmentService, ApiClaimsEnrichmentService>();
         
         return services;
+    }
+
+    /// <summary>
+    /// Adds API authentication with full authorization policies and RPT support
+    /// </summary>
+    public static IServiceCollection AddApiAuthenticationWithAuthorization(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services.AddApiAuthentication(configuration);
     }
 }
