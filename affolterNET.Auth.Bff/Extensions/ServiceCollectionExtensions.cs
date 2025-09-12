@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using affolterNET.Auth.Core.Extensions;
@@ -78,6 +77,7 @@ public static class ServiceCollectionExtensions
         });
 
         // Register BFF-specific services
+        services.AddSingleton<TokenRefreshService>();
         services.AddScoped<IClaimsEnrichmentService, BffClaimsEnrichmentService>();
         services.AddScoped<IBffSessionService, BffSessionService>();
         services.AddHttpClient<IBffApiClient, BffApiClient>();

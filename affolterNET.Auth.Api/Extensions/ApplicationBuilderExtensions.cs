@@ -11,7 +11,6 @@ public static class ApplicationBuilderExtensions
     public static IApplicationBuilder UseApiAuthentication(this IApplicationBuilder app)
     {
         app.UseAuthentication();
-        app.UseMiddleware<RefreshTokenMiddleware>();
         app.UseMiddleware<RptMiddleware>();
         app.UseAuthorization();
         
@@ -25,7 +24,6 @@ public static class ApplicationBuilderExtensions
     {
         app.UseMiddleware<SecurityHeadersMiddleware>();
         app.UseAuthentication();
-        app.UseMiddleware<RefreshTokenMiddleware>();
         app.UseMiddleware<RptMiddleware>();
         app.UseAuthorization();
         

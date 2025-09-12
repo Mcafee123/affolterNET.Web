@@ -32,7 +32,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<RptCacheService>();
         services.AddScoped<AuthClaimsService>();
         services.AddScoped<IPermissionService, PermissionService>();
-        services.AddSingleton<TokenRefreshService>();
 
         // Add memory cache if not already added
         services.AddMemoryCache();
@@ -62,38 +61,5 @@ public static class ServiceCollectionExtensions
         });
         
         return services;
-    }
-}
-
-public static class ApplicationBuilderExtensions
-{
-    /// <summary>
-    /// Adds all authentication-related middleware (RPT and token refresh) to the pipeline in the correct order.
-    /// </summary>
-    /// <param name="app">The application builder</param>
-    /// <param name="oidcScheme">The OIDC authentication scheme name (default: "OpenIdConnect")</param>
-    public static IApplicationBuilder UseCompleteAuthMiddleware(this IApplicationBuilder app, string oidcScheme = "OpenIdConnect")
-    {
-        app.UseRptMiddleware();
-        app.UseTokenRefreshMiddleware(oidcScheme);
-        return app;
-    }
-
-    /// <summary>
-    /// Adds the RPT middleware to the pipeline for automatic claims enrichment
-    /// </summary>
-    public static IApplicationBuilder UseRptMiddleware(this IApplicationBuilder app)
-    {
-        return app.UseMiddleware<RptMiddleware>();
-    }
-
-    /// <summary>
-    /// Adds the token refresh middleware to the pipeline for automatic token renewal
-    /// </summary>
-    /// <param name="app">The application builder</param>
-    /// <param name="oidcScheme">The OIDC authentication scheme name (default: "OpenIdConnect")</param>
-    public static IApplicationBuilder UseTokenRefreshMiddleware(this IApplicationBuilder app, string oidcScheme = "OpenIdConnect")
-    {
-        return app.UseMiddleware<RefreshTokenMiddleware>(oidcScheme);
     }
 }

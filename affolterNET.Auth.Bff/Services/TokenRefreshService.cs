@@ -9,10 +9,11 @@ using NETCore.Keycloak.Client.HttpClients.Abstraction;
 using NETCore.Keycloak.Client.Models.Auth;
 using NETCore.Keycloak.Client.Models.Tokens;
 
-namespace affolterNET.Auth.Core.Services;
+namespace affolterNET.Auth.Bff.Services;
 
 /// <summary>
 /// Service for refreshing authentication tokens using Keycloak refresh tokens
+/// This service is BFF-specific as it handles browser session cookies and token persistence
 /// </summary>
 public class TokenRefreshService
 {
