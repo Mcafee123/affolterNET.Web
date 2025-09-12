@@ -59,4 +59,21 @@ public static class ServiceCollectionExtensions
     {
         return services.AddApiAuthentication(configuration);
     }
+
+    /// <summary>
+    /// Adds API authentication with security headers
+    /// </summary>
+    public static IServiceCollection AddApiAuthenticationWithSecurityHeaders(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services.AddApiAuthentication(configuration)
+                      .AddSecurityHeaders(configuration);
+    }
+
+    /// <summary>
+    /// Adds complete API authentication with security headers and all auth features
+    /// </summary>
+    public static IServiceCollection AddCompleteApiAuthentication(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services.AddApiAuthenticationWithSecurityHeaders(configuration);
+    }
 }

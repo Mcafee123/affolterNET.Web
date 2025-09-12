@@ -113,12 +113,46 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds complete authentication and authorization services including RPT, token refresh, and permission policies
+    /// Adds complete authentication services with all middleware, token refresh, and authorization policies
     /// </summary>
     public static IServiceCollection AddCompleteAuthServices(this IServiceCollection services, IConfiguration configuration)
     {
         return services.AddAuthenticationServices(configuration)
+                      .AddTokenRefreshServices(configuration)
                       .AddAuthorizationPolicies();
+    }
+
+    /// <summary>
+    /// Adds security headers configuration and middleware services
+    /// </summary>
+    public static IServiceCollection AddSecurityHeaders(this IServiceCollection services, IConfiguration configuration)
+    {
+        // Register AuthConfiguration to access SecurityHeaders settings
+        var authConfig = AuthConfiguration.Bind(configuration);
+        services.Configure<AuthConfiguration>(config => 
+        {
+            config.SecurityHeaders = authConfig.SecurityHeaders;
+        });
+        
+        return services;
+    }
+
+    /// <summary>
+    /// Adds authentication services with security headers
+    /// </summary>
+    public static IServiceCollection AddAuthServicesWithSecurityHeaders(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services.AddAuthenticationServices(configuration)
+                      .AddSecurityHeaders(configuration);
+    }
+
+    /// <summary>
+    /// Adds complete authentication services with security headers, token refresh, and authorization policies
+    /// </summary>
+    public static IServiceCollection AddCompleteAuthServicesWithSecurityHeaders(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services.AddCompleteAuthServices(configuration)
+                      .AddSecurityHeaders(configuration);
     }
 }
 

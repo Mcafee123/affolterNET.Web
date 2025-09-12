@@ -118,4 +118,54 @@ public static class ServiceCollectionExtensions
         return services.AddBffAuthentication(configuration)
                       .AddReverseProxyWithAuthTransform(configuration);
     }
+
+    /// <summary>
+    /// Adds antiforgery services configured for SPA scenarios with client-accessible tokens
+    /// </summary>
+    public static IServiceCollection AddAntiforgeryServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        var authConfig = affolterNET.Auth.Core.Configuration.AuthConfiguration.Bind(configuration);
+        
+        services.AddAntiforgery(options =>
+        {
+            options.HeaderName = authConfig.Antiforgery.ClientCookieName;
+            options.Cookie.Name = authConfig.Antiforgery.ServerCookieName;
+            options.Cookie.SameSite = authConfig.Antiforgery.SameSiteMode;
+            options.Cookie.SecurePolicy = authConfig.Antiforgery.RequireSecure 
+                ? Microsoft.AspNetCore.Http.CookieSecurePolicy.Always 
+                : Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
+            options.Cookie.Path = authConfig.Antiforgery.CookiePath;
+        });
+        
+        return services;
+    }
+
+    /// <summary>
+    /// Adds BFF authentication with antiforgery protection for forms and SPA scenarios
+    /// </summary>
+    public static IServiceCollection AddBffAuthenticationWithAntiforgery(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services.AddBffAuthentication(configuration)
+                      .AddAntiforgeryServices(configuration);
+    }
+
+    /// <summary>
+    /// Adds BFF authentication with security headers
+    /// </summary>
+    public static IServiceCollection AddBffAuthenticationWithSecurityHeaders(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services.AddBffAuthentication(configuration)
+                      .AddSecurityHeaders(configuration);
+    }
+
+    /// <summary>
+    /// Adds complete BFF authentication with security headers, antiforgery, and reverse proxy
+    /// </summary>
+    public static IServiceCollection AddCompleteBffAuthentication(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services.AddBffAuthentication(configuration)
+                      .AddAntiforgeryServices(configuration)
+                      .AddSecurityHeaders(configuration)
+                      .AddReverseProxyWithAuthTransform(configuration);
+    }
 }

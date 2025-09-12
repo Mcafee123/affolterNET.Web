@@ -1,0 +1,155 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
+using affolterNET.Auth.Core.Configuration;
+
+namespace affolterNET.Auth.Core.Middleware;
+
+/// <summary>
+/// Middleware that adds security headers to HTTP responses for improved security posture.
+/// Includes CSP, HSTS, X-Frame-Options, and other security-related headers.
+/// </summary>
+public class SecurityHeadersMiddleware(
+    RequestDelegate next,
+    IOptionsMonitor<AuthConfiguration> authOptions)
+{
+    public async Task Invoke(HttpContext context)
+    {
+        var options = authOptions.CurrentValue.SecurityHeaders;
+        
+        if (options.Enabled)
+        {
+            AddSecurityHeaders(context, options);
+        }
+
+        await next(context);
+    }
+
+    private static void AddSecurityHeaders(HttpContext context, SecurityHeadersOptions options)
+    {
+        var headers = context.Response.Headers;
+
+        // Remove server header if configured
+        if (options.RemoveServerHeader)
+        {
+            headers.Remove("Server");
+        }
+
+        // X-Frame-Options: Prevent clickjacking
+        headers.Append("X-Frame-Options", "DENY");
+
+        // X-Content-Type-Options: Prevent MIME type sniffing
+        headers.Append("X-Content-Type-Options", "nosniff");
+
+        // Referrer-Policy: Control referrer information
+        headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+
+        // Cross-Origin-Opener-Policy: Isolate browsing context
+        headers.Append("Cross-Origin-Opener-Policy", "same-origin");
+
+        // Cross-Origin-Resource-Policy: Control resource sharing
+        headers.Append("Cross-Origin-Resource-Policy", "same-origin");
+
+        // Cross-Origin-Embedder-Policy: Enable SharedArrayBuffer
+        if (!options.IsDevelopment)
+        {
+            headers.Append("Cross-Origin-Embedder-Policy", "require-corp");
+        }
+
+        // Permissions-Policy: Control browser features
+        headers.Append("Permissions-Policy", 
+            "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), " +
+            "cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), " +
+            "execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), " +
+            "geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), " +
+            "midi=(), navigation-override=(), payment=(), picture-in-picture=(), " +
+            "publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), " +
+            "web-share=(), xr-spatial-tracking=()");
+
+        // Strict-Transport-Security: Enforce HTTPS
+        if (!options.IsDevelopment && context.Request.IsHttps)
+        {
+            var hstsValue = $"max-age={options.HstsMaxAge}";
+            if (options.HstsIncludeSubDomains)
+                hstsValue += "; includeSubDomains";
+            if (options.HstsPreload)
+                hstsValue += "; preload";
+            
+            headers.Append("Strict-Transport-Security", hstsValue);
+        }
+
+        // Content-Security-Policy: Comprehensive CSP
+        var csp = BuildContentSecurityPolicy(options);
+        headers.Append("Content-Security-Policy", csp);
+    }
+
+    private static string BuildContentSecurityPolicy(SecurityHeadersOptions options)
+    {
+        var directives = new List<string>
+        {
+            "default-src 'self'",
+            "object-src 'none'",
+            "base-uri 'self'",
+            "frame-ancestors 'none'",
+            "block-all-mixed-content"
+        };
+
+        // Image sources
+        var imgSrc = "'self' data:";
+        if (options.AllowedImageSources.Count > 0)
+            imgSrc += " " + string.Join(" ", options.AllowedImageSources);
+        directives.Add($"img-src {imgSrc}");
+
+        // Font sources
+        directives.Add("font-src 'self'");
+
+        // Form actions
+        var formAction = "'self'";
+        if (!string.IsNullOrEmpty(options.IdpHost))
+            formAction += $" {options.IdpHost}";
+        directives.Add($"form-action {formAction}");
+
+        // Script sources
+        var scriptSrc = "'self'";
+        if (options.IsDevelopment)
+        {
+            scriptSrc += " 'unsafe-inline' 'unsafe-eval'";
+        }
+        else
+        {
+            scriptSrc += " 'nonce-{nonce}'";
+        }
+        if (options.AllowedScriptSources.Count > 0)
+            scriptSrc += " " + string.Join(" ", options.AllowedScriptSources);
+        directives.Add($"script-src {scriptSrc}");
+
+        // Style sources
+        var styleSrc = "'self'";
+        if (options.IsDevelopment)
+        {
+            styleSrc += " 'unsafe-inline'";
+        }
+        else
+        {
+            styleSrc += " 'nonce-{nonce}' 'unsafe-inline'";
+        }
+        if (options.AllowedStyleSources.Count > 0)
+            styleSrc += " " + string.Join(" ", options.AllowedStyleSources);
+        directives.Add($"style-src {styleSrc}");
+
+        // Connect sources (for API calls, WebSocket, etc.)
+        var connectSrc = "'self'";
+        if (options.AllowedConnectSources.Count > 0)
+            connectSrc += " " + string.Join(" ", options.AllowedConnectSources);
+        if (!string.IsNullOrEmpty(options.IdpHost))
+            connectSrc += $" {options.IdpHost}";
+        directives.Add($"connect-src {connectSrc}");
+
+        // Add custom directives
+        foreach (var (directive, value) in options.CustomCspDirectives)
+        {
+            directives.Add($"{directive} {value}");
+        }
+
+        return string.Join("; ", directives);
+    }
+}
