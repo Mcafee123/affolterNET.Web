@@ -11,11 +11,32 @@ namespace affolterNET.Auth.Api.Extensions;
 
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds complete API authentication with JWT Bearer, authorization policies, and security headers
+    /// This is the single public entry point for API authentication
+    /// </summary>
     public static IServiceCollection AddApiAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        // Add core authentication services with authorization policies
-        services.AddCompleteAuthServices(configuration);
+        // Add core authentication services
+        services.AddCoreServices()
+                .AddKeycloakIntegration(configuration)
+                .AddRptServices()
+                .AddAuthorizationPolicies();
         
+        // Add API-specific authentication setup
+        services.AddApiAuthenticationInternal(configuration);
+        
+        // Add security headers
+        services.AddSecurityHeaders(configuration);
+        
+        return services;
+    }
+
+    /// <summary>
+    /// Adds JWT Bearer authentication and API-specific services
+    /// </summary>
+    private static IServiceCollection AddApiAuthenticationInternal(this IServiceCollection services, IConfiguration configuration)
+    {
         // Configure API-specific options
         services.Configure<ApiAuthOptions>(configuration.GetSection(ApiAuthOptions.SectionName));
         
@@ -46,34 +67,9 @@ public static class ServiceCollectionExtensions
                 };
             });
 
-        // Register API-specific services
+        // Register API-specific services (only services from this library)
         services.AddScoped<IClaimsEnrichmentService, ApiClaimsEnrichmentService>();
         
         return services;
-    }
-
-    /// <summary>
-    /// Adds API authentication with full authorization policies and RPT support
-    /// </summary>
-    public static IServiceCollection AddApiAuthenticationWithAuthorization(this IServiceCollection services, IConfiguration configuration)
-    {
-        return services.AddApiAuthentication(configuration);
-    }
-
-    /// <summary>
-    /// Adds API authentication with security headers
-    /// </summary>
-    public static IServiceCollection AddApiAuthenticationWithSecurityHeaders(this IServiceCollection services, IConfiguration configuration)
-    {
-        return services.AddApiAuthentication(configuration)
-                      .AddSecurityHeaders(configuration);
-    }
-
-    /// <summary>
-    /// Adds complete API authentication with security headers and all auth features
-    /// </summary>
-    public static IServiceCollection AddCompleteApiAuthentication(this IServiceCollection services, IConfiguration configuration)
-    {
-        return services.AddApiAuthenticationWithSecurityHeaders(configuration);
     }
 }

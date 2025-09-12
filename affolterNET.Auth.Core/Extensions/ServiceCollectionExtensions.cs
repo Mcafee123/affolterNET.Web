@@ -14,10 +14,23 @@ namespace affolterNET.Auth.Core.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds complete authentication services with all middleware, token refresh, and authorization policies
-    /// Used by BFF authentication
+    /// Adds core infrastructure services required for authentication (memory cache, HTTP context accessor)
     /// </summary>
-    public static IServiceCollection AddCompleteAuthServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddCoreServices(this IServiceCollection services)
+    {
+        // Add memory cache if not already added
+        services.AddMemoryCache();
+
+        // Add HTTP context accessor if not already added
+        services.AddHttpContextAccessor();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds Keycloak client integration and configuration
+    /// </summary>
+    public static IServiceCollection AddKeycloakIntegration(this IServiceCollection services, IConfiguration configuration)
     {
         // Register unified Auth configuration
         services.Configure<AuthConfiguration>(configuration.GetSection(AuthConfiguration.SectionName));
@@ -26,6 +39,14 @@ public static class ServiceCollectionExtensions
         var authConfig = AuthConfiguration.Bind(configuration);
         services.AddSingleton<IKeycloakClient>(_ => new KeycloakClient(authConfig.AuthorityBase));
 
+        return services;
+    }
+
+    /// <summary>
+    /// Adds RPT (Request Party Token) services for permission management
+    /// </summary>
+    public static IServiceCollection AddRptServices(this IServiceCollection services)
+    {
         // Register RPT and token services
         services.AddScoped<TokenHelper>();
         services.AddScoped<RptTokenService>();
@@ -33,12 +54,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<AuthClaimsService>();
         services.AddScoped<IPermissionService, PermissionService>();
 
-        // Add memory cache if not already added
-        services.AddMemoryCache();
+        return services;
+    }
 
-        // Add HTTP context accessor if not already added
-        services.AddHttpContextAccessor();
-
+    /// <summary>
+    /// Adds authorization policies and custom authorization handlers
+    /// </summary>
+    public static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services)
+    {
         // Add authorization and custom policy provider/handler
         services.AddAuthorization();
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
@@ -49,7 +72,6 @@ public static class ServiceCollectionExtensions
 
     /// <summary>
     /// Adds security headers configuration and middleware services
-    /// Used by BFF authentication
     /// </summary>
     public static IServiceCollection AddSecurityHeaders(this IServiceCollection services, IConfiguration configuration)
     {

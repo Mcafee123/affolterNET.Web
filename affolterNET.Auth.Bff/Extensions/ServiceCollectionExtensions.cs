@@ -12,13 +12,33 @@ namespace affolterNET.Auth.Bff.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds BFF authentication with core services
+    /// Adds complete BFF authentication with all required services and middleware
+    /// This is the single public entry point for BFF authentication
     /// </summary>
     public static IServiceCollection AddBffAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        // Add core authentication services including token refresh and authorization policies
-        services.AddCompleteAuthServices(configuration);
+        // Add core authentication services
+        services.AddCoreServices()
+                .AddKeycloakIntegration(configuration)
+                .AddRptServices()
+                .AddAuthorizationPolicies();
         
+        // Add BFF-specific authentication setup
+        services.AddBffAuthenticationInternal(configuration);
+        
+        // Add BFF supporting services
+        services.AddAntiforgeryServicesInternal(configuration);
+        services.AddSecurityHeaders(configuration);
+        services.AddReverseProxyWithAuthTransformInternal(configuration);
+        
+        return services;
+    }
+
+    /// <summary>
+    /// Adds BFF authentication configuration (cookies, OIDC)
+    /// </summary>
+    private static IServiceCollection AddBffAuthenticationInternal(this IServiceCollection services, IConfiguration configuration)
+    {
         // Configure BFF-specific options
         services.Configure<BffAuthOptions>(configuration.GetSection(BffAuthOptions.SectionName));
         
@@ -76,7 +96,7 @@ public static class ServiceCollectionExtensions
             options.GetClaimsFromUserInfoEndpoint = true;
         });
 
-        // Register BFF-specific services
+        // Register BFF-specific services (only services from this library)
         services.AddSingleton<TokenRefreshService>();
         services.AddScoped<IClaimsEnrichmentService, BffClaimsEnrichmentService>();
         services.AddScoped<IBffSessionService, BffSessionService>();
@@ -88,7 +108,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds reverse proxy with authentication token forwarding
     /// </summary>
-    public static IServiceCollection AddReverseProxyWithAuthTransform(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddReverseProxyWithAuthTransformInternal(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddReverseProxy()
             .LoadFromConfig(configuration.GetSection("ReverseProxy"))
@@ -100,7 +120,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds antiforgery services configured for SPA scenarios with client-accessible tokens
     /// </summary>
-    public static IServiceCollection AddAntiforgeryServices(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddAntiforgeryServicesInternal(this IServiceCollection services, IConfiguration configuration)
     {
         var authConfig = affolterNET.Auth.Core.Configuration.AuthConfiguration.Bind(configuration);
         
@@ -116,17 +136,5 @@ public static class ServiceCollectionExtensions
         });
         
         return services;
-    }
-
-    /// <summary>
-    /// Adds complete BFF authentication with security headers, antiforgery, and reverse proxy
-    /// This is the main method used by DataFlow.Web
-    /// </summary>
-    public static IServiceCollection AddCompleteBffAuthentication(this IServiceCollection services, IConfiguration configuration)
-    {
-        return services.AddBffAuthentication(configuration)
-                      .AddAntiforgeryServices(configuration)
-                      .AddSecurityHeaders(configuration)
-                      .AddReverseProxyWithAuthTransform(configuration);
     }
 }
