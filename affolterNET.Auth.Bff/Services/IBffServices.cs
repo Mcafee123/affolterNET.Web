@@ -21,3 +21,11 @@ public interface IBffApiClient
         where TRequest : class 
         where TResponse : class;
 }
+
+/// <summary>
+/// Optional service for custom token cache cleanup during logout
+/// </summary>
+public interface ITokenCacheCleanupService
+{
+    void ClearUserTokens();
+}

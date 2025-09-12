@@ -1,12 +1,15 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using affolterNET.Auth.Bff.Services;
 
 namespace affolterNET.Auth.Bff.Controllers;
 
 [ApiController]
-[Route("bff")]
+[Route("bff/account")]
+[IgnoreAntiforgeryToken]
 public class BffController : ControllerBase
 {
     private readonly IBffSessionService _sessionService;
@@ -17,57 +20,35 @@ public class BffController : ControllerBase
     }
 
     [HttpGet("login")]
-    public IActionResult Login([FromQuery] string? returnUrl = null)
+    public IActionResult Login([FromQuery] string? returnUrl = null, [FromQuery] string? claimsChallenge = null)
     {
+        var redirectUri = !string.IsNullOrEmpty(returnUrl) ? returnUrl : "/";
         var properties = new AuthenticationProperties
         {
-            RedirectUri = returnUrl ?? "/"
+            RedirectUri = redirectUri
         };
         
-        return Challenge(properties, "oidc");
-    }
-
-    [HttpGet("logout")]
-    [Authorize]
-    public async Task<IActionResult> Logout([FromQuery] string? returnUrl = null)
-    {
-        await _sessionService.RevokeTokensAsync(HttpContext);
-        
-        var properties = new AuthenticationProperties
+        // Support claims challenge for conditional access scenarios
+        if (!string.IsNullOrEmpty(claimsChallenge))
         {
-            RedirectUri = returnUrl ?? "/"
-        };
-        
-        return SignOut(properties, "oidc");
-    }
-
-    [HttpGet("user")]
-    [Authorize]
-    public async Task<IActionResult> GetUser(CancellationToken cancellationToken)
-    {
-        var userContext = await _sessionService.GetUserContextAsync(HttpContext, cancellationToken);
-        if (userContext == null)
-        {
-            return Unauthorized();
+            string jsonString = claimsChallenge.Replace("\\", "")
+                .Trim(new char[1] { '"' });
+            properties.Items["claims"] = jsonString;
         }
-
-        return Ok(userContext);
-    }
-
-    [HttpGet("claims")]
-    [Authorize]
-    public IActionResult GetClaims()
-    {
-        var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToArray();
-        return Ok(claims);
+        
+        return Challenge(properties);
     }
 
     [HttpPost("logout")]
     [Authorize]
-    public async Task<IActionResult> PostLogout()
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> Logout()
     {
         await _sessionService.RevokeTokensAsync(HttpContext);
-        await HttpContext.SignOutAsync();
-        return Ok();
+        
+        return SignOut(
+            new AuthenticationProperties { RedirectUri = "/" },
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            OpenIdConnectDefaults.AuthenticationScheme);
     }
 }

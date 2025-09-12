@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using affolterNET.Auth.Core.Configuration;
@@ -12,19 +13,25 @@ public class SecurityHeadersMiddleware(
     RequestDelegate next,
     IOptionsMonitor<AuthConfiguration> authOptions)
 {
+    private const string NonceKey = "csp-nonce";
+
     public async Task Invoke(HttpContext context)
     {
         var options = authOptions.CurrentValue.SecurityHeaders;
         
         if (options.Enabled)
         {
-            AddSecurityHeaders(context, options);
+            // Generate nonce for this request
+            var nonce = GenerateNonce();
+            context.Items[NonceKey] = nonce;
+            
+            AddSecurityHeaders(context, options, nonce);
         }
 
         await next(context);
     }
 
-    private static void AddSecurityHeaders(HttpContext context, SecurityHeadersOptions options)
+    private static void AddSecurityHeaders(HttpContext context, SecurityHeadersOptions options, string nonce)
     {
         var headers = context.Response.Headers;
 
@@ -73,16 +80,15 @@ public class SecurityHeadersMiddleware(
                 hstsValue += "; includeSubDomains";
             if (options.HstsPreload)
                 hstsValue += "; preload";
-            
             headers.Append("Strict-Transport-Security", hstsValue);
         }
 
         // Content-Security-Policy: Comprehensive CSP
-        var csp = BuildContentSecurityPolicy(options);
+        var csp = BuildContentSecurityPolicy(options, nonce);
         headers.Append("Content-Security-Policy", csp);
     }
 
-    private static string BuildContentSecurityPolicy(SecurityHeadersOptions options)
+    private static string BuildContentSecurityPolicy(SecurityHeadersOptions options, string nonce)
     {
         var directives = new List<string>
         {
@@ -116,7 +122,7 @@ public class SecurityHeadersMiddleware(
         }
         else
         {
-            scriptSrc += " 'nonce-{nonce}'";
+            scriptSrc += $" 'nonce-{nonce}'";
         }
         if (options.AllowedScriptSources.Count > 0)
             scriptSrc += " " + string.Join(" ", options.AllowedScriptSources);
@@ -130,7 +136,7 @@ public class SecurityHeadersMiddleware(
         }
         else
         {
-            styleSrc += " 'nonce-{nonce}' 'unsafe-inline'";
+            styleSrc += $" 'nonce-{nonce}' 'unsafe-inline'";
         }
         if (options.AllowedStyleSources.Count > 0)
             styleSrc += " " + string.Join(" ", options.AllowedStyleSources);
@@ -151,5 +157,29 @@ public class SecurityHeadersMiddleware(
         }
 
         return string.Join("; ", directives);
+    }
+
+    private static string GenerateNonce()
+    {
+        var bytes = new byte[32];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(bytes);
+        return Convert.ToBase64String(bytes);
+    }
+}
+
+/// <summary>
+/// Extension methods for HttpContext to support nonce functionality
+/// </summary>
+public static class HttpContextSecurityExtensions
+{
+    private const string NonceKey = "csp-nonce";
+
+    /// <summary>
+    /// Gets the CSP nonce for the current request
+    /// </summary>
+    public static string GetNonce(this HttpContext context)
+    {
+        return context.Items[NonceKey]?.ToString() ?? string.Empty;
     }
 }

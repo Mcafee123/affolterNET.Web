@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
 using affolterNET.Auth.Core.Models;
 using affolterNET.Auth.Core.Services;
 using affolterNET.Auth.Bff.Configuration;
@@ -13,15 +14,18 @@ public class BffSessionService : IBffSessionService
     private readonly IClaimsEnrichmentService _claimsEnrichmentService;
     private readonly ILogger<BffSessionService> _logger;
     private readonly BffAuthOptions _options;
+    private readonly IServiceProvider _serviceProvider;
 
     public BffSessionService(
         IClaimsEnrichmentService claimsEnrichmentService,
         ILogger<BffSessionService> logger,
-        IOptions<BffAuthOptions> options)
+        IOptions<BffAuthOptions> options,
+        IServiceProvider serviceProvider)
     {
         _claimsEnrichmentService = claimsEnrichmentService;
         _logger = logger;
         _options = options.Value;
+        _serviceProvider = serviceProvider;
     }
 
     public Task<bool> IsUserAuthenticatedAsync(HttpContext context)
@@ -77,6 +81,10 @@ public class BffSessionService : IBffSessionService
                 // TODO: Implement token revocation
                 // Call the revocation endpoint if supported by the provider
             }
+            
+            // Clear custom token cache if service is available
+            var tokenCacheCleanup = _serviceProvider.GetService<ITokenCacheCleanupService>();
+            tokenCacheCleanup?.ClearUserTokens();
         }
         catch (Exception ex)
         {

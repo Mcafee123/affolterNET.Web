@@ -2,6 +2,7 @@ using affolterNET.Auth.Core.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace affolterNET.Auth.Core.Middleware;
@@ -12,18 +13,15 @@ namespace affolterNET.Auth.Core.Middleware;
 public class RefreshTokenMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly TokenRefreshService _tokenRefreshService;
     private readonly ILogger<RefreshTokenMiddleware> _logger;
     private readonly string _oidcScheme;
 
     public RefreshTokenMiddleware(
         RequestDelegate next,
-        TokenRefreshService tokenRefreshService,
         ILogger<RefreshTokenMiddleware> logger,
         string oidcScheme = "OpenIdConnect")
     {
         _next = next;
-        _tokenRefreshService = tokenRefreshService;
         _logger = logger;
         _oidcScheme = oidcScheme;
     }
@@ -32,20 +30,21 @@ public class RefreshTokenMiddleware
     /// Processes the HTTP request and refreshes tokens if necessary
     /// </summary>
     /// <param name="context">The HTTP context</param>
-    public async Task InvokeAsync(HttpContext context)
+    /// <param name="tokenRefreshService">The token refresh service (injected per request)</param>
+    public async Task InvokeAsync(HttpContext context, TokenRefreshService tokenRefreshService)
     {
         // If the user is not authenticated or no access token is present, skip to next middleware
-        var tokenExpiresAt = await _tokenRefreshService.ExpiresAt();
+        var tokenExpiresAt = await tokenRefreshService.ExpiresAt(context);
         if (context.User.Identity?.IsAuthenticated != true || tokenExpiresAt == null)
         {
             await _next(context);
             return;
         }
 
-        if (await _tokenRefreshService.IsExpired())
+        if (await tokenRefreshService.IsExpired(context))
         {
             _logger.LogDebug("Access token is expired, attempting to refresh");
-            var result = await _tokenRefreshService.RefreshTokensAsync();
+            var result = await tokenRefreshService.RefreshTokensAsync(context);
             if (result)
             {
                 _logger.LogDebug("Tokens have been refreshed successfully");

@@ -83,14 +83,17 @@ public class AuthClaimsService
     private async Task<JwtSecurityToken?> GetRptToken(string accessToken)
     {
         // get from cache
-        var rpt = _rptCacheService.GetRpt();
+        var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            return null;
+        var rpt = _rptCacheService.GetRpt(userId);
         if (rpt == null)
         {
             await RefreshLock.WaitAsync();
             try
             {
                 // check again
-                rpt = _rptCacheService.GetRpt();
+                rpt = _rptCacheService.GetRpt(userId);
                 if (rpt == null)
                 {
                     // get token from keycloak
@@ -102,7 +105,11 @@ public class AuthClaimsService
                     }
 
                     // token received, store in cache as JwtSecurityToken
-                    rpt = _rptCacheService.StoreRpt(token);
+                    var handler = new JwtSecurityTokenHandler();
+                    if (!handler.CanReadToken(token.AccessToken))
+                        return null;
+                    var decodedToken = handler.ReadJwtToken(token.AccessToken);
+                    rpt = _rptCacheService.StoreRpt(userId, token, decodedToken);
                 }
             }
             finally

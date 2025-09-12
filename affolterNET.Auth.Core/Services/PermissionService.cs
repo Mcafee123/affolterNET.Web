@@ -64,7 +64,11 @@ public class PermissionService : IPermissionService
             }
 
             // Store in RPT cache and get decoded token
-            var decodedToken = _rptCacheService.StoreRpt(rptToken);
+            var handler = new JwtSecurityTokenHandler();
+            if (!handler.CanReadToken(rptToken.AccessToken))
+                return Array.Empty<Permission>();
+            var decodedToken = handler.ReadJwtToken(rptToken.AccessToken);
+            _rptCacheService.StoreRpt(userId, rptToken, decodedToken);
             
             // Extract permissions from RPT token
             var permissions = ExtractPermissionsFromRpt(decodedToken);
@@ -133,7 +137,7 @@ public class PermissionService : IPermissionService
             _cache.Remove(cacheKey);
             
             // Also remove from RPT cache
-            _rptCacheService.RemoveByUserId();
+            _rptCacheService.RemoveByUserId(userId);
             
             _logger.LogDebug("Invalidated permissions cache for user {UserId}", userId);
         }

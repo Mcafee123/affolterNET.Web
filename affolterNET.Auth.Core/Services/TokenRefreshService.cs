@@ -16,7 +16,6 @@ namespace affolterNET.Auth.Core.Services;
 /// </summary>
 public class TokenRefreshService
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IKeycloakClient _keycloakClient;
     private readonly ILogger<TokenRefreshService> _logger;
     private readonly string _realm;
@@ -24,12 +23,10 @@ public class TokenRefreshService
     private static readonly SemaphoreSlim RefreshLock = new(1, 1);
 
     public TokenRefreshService(
-        IHttpContextAccessor httpContextAccessor,
         IOptions<AuthConfiguration> authConfig,
         IKeycloakClient keycloakClient,
         ILogger<TokenRefreshService> logger)
     {
-        _httpContextAccessor = httpContextAccessor;
         _keycloakClient = keycloakClient;
         _logger = logger;
         _realm = authConfig.Value.Realm;
@@ -43,21 +40,22 @@ public class TokenRefreshService
     /// <summary>
     /// Refreshes the authentication tokens if they are expired or about to expire
     /// </summary>
+    /// <param name="httpContext">The current HTTP context</param>
     /// <returns>True if tokens were refreshed successfully, false otherwise</returns>
-    public async Task<bool> RefreshTokensAsync()
+    public async Task<bool> RefreshTokensAsync(HttpContext httpContext)
     {
         await RefreshLock.WaitAsync();
         try
         {
             // Check again after acquiring the lock
-            if (!await IsExpired())
+            if (!await IsExpired(httpContext))
             {
                 return true;
             }
 
             // Request new tokens from Keycloak
             _logger.LogDebug("Refreshing tokens...");
-            var refreshToken = await GetRefreshToken();
+            var refreshToken = await GetRefreshToken(httpContext);
             if (refreshToken == null)
             {
                 _logger.LogWarning("Refreshing token failed - no refresh token available");
@@ -81,7 +79,7 @@ public class TokenRefreshService
             var newExpiresAt = DateTime.UtcNow.AddSeconds(expiresIn);
             
             // Update the tokens
-            return await UpdateAuthTokensAsync(newAccessToken, newRefreshToken, newExpiresAt);
+            return await UpdateAuthTokensAsync(httpContext, newAccessToken, newRefreshToken, newExpiresAt);
         }
         catch (Exception ex)
         {
@@ -97,16 +95,17 @@ public class TokenRefreshService
     /// <summary>
     /// Gets the expiration time of the current access token
     /// </summary>
+    /// <param name="httpContext">The current HTTP context</param>
     /// <returns>The expiration time or null if not available</returns>
-    public async Task<DateTime?> ExpiresAt()
+    public async Task<DateTime?> ExpiresAt(HttpContext httpContext)
     {
-        if (_httpContextAccessor.HttpContext == null)
+        if (httpContext == null)
         {
             _logger.LogError("HttpContext is null");
             return null;
         }
 
-        var expiresAtString = await _httpContextAccessor.HttpContext.GetTokenAsync("expires_at");
+        var expiresAtString = await httpContext.GetTokenAsync("expires_at");
         if (!DateTime.TryParse(expiresAtString, null, DateTimeStyles.AdjustToUniversal, out DateTime expiresAt))
         {
             return null;
@@ -118,11 +117,12 @@ public class TokenRefreshService
     /// <summary>
     /// Checks if the current access token is expired or about to expire
     /// </summary>
+    /// <param name="httpContext">The current HTTP context</param>
     /// <param name="secondsBeforeExpiration">Number of seconds before expiration to consider the token expired</param>
     /// <returns>True if the token is expired or about to expire</returns>
-    public async Task<bool> IsExpired(int secondsBeforeExpiration = 10)
+    public async Task<bool> IsExpired(HttpContext httpContext, int secondsBeforeExpiration = 10)
     {
-        var expiresAt = await ExpiresAt();
+        var expiresAt = await ExpiresAt(httpContext);
         if (expiresAt == null)
         {
             return true;
@@ -134,15 +134,15 @@ public class TokenRefreshService
         return isExpired;
     }
 
-    private async Task<string?> GetRefreshToken()
+    private async Task<string?> GetRefreshToken(HttpContext httpContext)
     {
-        if (_httpContextAccessor.HttpContext == null)
+        if (httpContext == null)
         {
             _logger.LogWarning("HttpContext is null");
             return null;
         }
 
-        var refreshToken = await _httpContextAccessor.HttpContext.GetTokenAsync("refresh_token");
+        var refreshToken = await httpContext.GetTokenAsync("refresh_token");
         return refreshToken;
     }
 
@@ -160,15 +160,15 @@ public class TokenRefreshService
         return kcResponse.Response;
     }
 
-    private async Task<bool> UpdateAuthTokensAsync(string newAccessToken, string newRefreshToken,
+    private async Task<bool> UpdateAuthTokensAsync(HttpContext httpContext, string newAccessToken, string newRefreshToken,
         DateTime newExpiresAt)
     {
         // Get current auth ticket (cookie) and update the token values
-        if (_httpContextAccessor.HttpContext == null)
+        if (httpContext == null)
         {
             return false;
         }
-        var context = _httpContextAccessor.HttpContext;
+        var context = httpContext;
         var currentAuth =
             await context.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         var authProperties = currentAuth.Properties;
