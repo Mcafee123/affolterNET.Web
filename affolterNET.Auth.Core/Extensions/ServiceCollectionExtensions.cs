@@ -39,6 +39,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<RptTokenService>();
         services.AddScoped<RptCacheService>();
         services.AddScoped<AuthClaimsService>();
+        services.AddScoped<IPermissionService, PermissionService>();
         
         // Add memory cache if not already added
         services.AddMemoryCache();
