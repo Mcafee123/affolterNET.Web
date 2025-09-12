@@ -46,6 +46,55 @@ public static class ServiceCollectionExtensions
         
         return services;
     }
+
+    /// <summary>
+    /// Adds token refresh services for automatic token renewal
+    /// </summary>
+    public static IServiceCollection AddTokenRefreshServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        // Register unified Auth configuration
+        services.Configure<AuthConfiguration>(configuration.GetSection(AuthConfiguration.SectionName));
+        
+        // Register Keycloak client
+        var authConfig = AuthConfiguration.Bind(configuration);
+        services.AddSingleton<IKeycloakClient>(_ => new KeycloakClient(authConfig.AuthorityBase));
+        
+        // Register token refresh service
+        services.AddScoped<TokenRefreshService>();
+        
+        // Add HTTP context accessor if not already added
+        services.AddHttpContextAccessor();
+        
+        return services;
+    }
+
+    /// <summary>
+    /// Adds all authentication services including RPT and token refresh
+    /// </summary>
+    public static IServiceCollection AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        // Register unified Auth configuration
+        services.Configure<AuthConfiguration>(configuration.GetSection(AuthConfiguration.SectionName));
+        
+        // Register Keycloak client
+        var authConfig = AuthConfiguration.Bind(configuration);
+        services.AddSingleton<IKeycloakClient>(_ => new KeycloakClient(authConfig.AuthorityBase));
+        
+        // Register all services
+        services.AddScoped<TokenHelper>();
+        services.AddScoped<RptTokenService>();
+        services.AddScoped<RptCacheService>();
+        services.AddScoped<AuthClaimsService>();
+        services.AddScoped<TokenRefreshService>();
+        
+        // Add memory cache if not already added
+        services.AddMemoryCache();
+        
+        // Add HTTP context accessor if not already added
+        services.AddHttpContextAccessor();
+        
+        return services;
+    }
 }
 
 public static class ApplicationBuilderExtensions
@@ -56,5 +105,26 @@ public static class ApplicationBuilderExtensions
     public static IApplicationBuilder UseRptMiddleware(this IApplicationBuilder app)
     {
         return app.UseMiddleware<RptMiddleware>();
+    }
+
+    /// <summary>
+    /// Adds the token refresh middleware to the pipeline for automatic token renewal
+    /// </summary>
+    /// <param name="app">The application builder</param>
+    /// <param name="oidcScheme">The OIDC authentication scheme name (default: "OpenIdConnect")</param>
+    public static IApplicationBuilder UseTokenRefreshMiddleware(this IApplicationBuilder app, string oidcScheme = "OpenIdConnect")
+    {
+        return app.UseMiddleware<RefreshTokenMiddleware>(oidcScheme);
+    }
+
+    /// <summary>
+    /// Adds both RPT and token refresh middleware to the pipeline
+    /// </summary>
+    /// <param name="app">The application builder</param>
+    /// <param name="oidcScheme">The OIDC authentication scheme name (default: "OpenIdConnect")</param>
+    public static IApplicationBuilder UseAuthenticationMiddleware(this IApplicationBuilder app, string oidcScheme = "OpenIdConnect")
+    {
+        return app.UseTokenRefreshMiddleware(oidcScheme)
+                  .UseRptMiddleware();
     }
 }

@@ -13,8 +13,8 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddBffAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        // Add core authentication services
-        services.AddAuthCore(configuration);
+        // Add core authentication services including token refresh
+        services.AddAuthenticationServices(configuration);
         
         // Configure BFF-specific options
         services.Configure<BffAuthOptions>(configuration.GetSection(BffAuthOptions.SectionName));
@@ -79,5 +79,13 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IBffApiClient, BffApiClient>();
         
         return services;
+    }
+
+    /// <summary>
+    /// Adds BFF authentication with full token refresh and RPT support
+    /// </summary>
+    public static IServiceCollection AddBffAuthenticationWithTokenRefresh(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services.AddBffAuthentication(configuration);
     }
 }
