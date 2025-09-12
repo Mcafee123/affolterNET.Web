@@ -60,7 +60,7 @@ public static class ServiceCollectionExtensions
             options.UsePkce = bffAuthOptions.Oidc.UsePkce;
             
             options.Scope.Clear();
-            foreach (var scope in bffAuthOptions.Scopes)
+            foreach (var scope in bffAuthOptions.GetScopes().Split(' ', StringSplitOptions.RemoveEmptyEntries))
             {
                 options.Scope.Add(scope);
             }

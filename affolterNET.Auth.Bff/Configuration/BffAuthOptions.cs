@@ -2,14 +2,11 @@ using affolterNET.Auth.Core.Configuration;
 
 namespace affolterNET.Auth.Bff.Configuration;
 
-public class BffAuthOptions : AuthCoreOptions
+public class BffAuthOptions : AuthConfiguration
 {
     public new const string SectionName = "BffAuth";
     
-    public string ClientSecret { get; set; } = string.Empty;
-    public string RedirectUri { get; set; } = "/signin-oidc";
     public string PostLogoutRedirectUri { get; set; } = "/signout-callback-oidc";
-    public string[] Scopes { get; set; } = { "openid", "profile", "email" };
     
     public CookieAuthOptions Cookie { get; set; } = new();
     public OidcOptions Oidc { get; set; } = new();

@@ -2,7 +2,7 @@ using affolterNET.Auth.Core.Configuration;
 
 namespace affolterNET.Auth.Api.Configuration;
 
-public class ApiAuthOptions : AuthCoreOptions
+public class ApiAuthOptions : AuthConfiguration
 {
     public new const string SectionName = "ApiAuth";
     
