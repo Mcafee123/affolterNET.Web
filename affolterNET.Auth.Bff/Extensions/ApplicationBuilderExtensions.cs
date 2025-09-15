@@ -20,7 +20,6 @@ public static class ApplicationBuilderExtensions
         bool isDevelopment, 
         Action<BffAppOptions>? configureOptions = null)
     {
-        var configuration = app.ApplicationServices.GetRequiredService<IConfiguration>();
         var options = new BffAppOptions();
         configureOptions?.Invoke(options);
 
