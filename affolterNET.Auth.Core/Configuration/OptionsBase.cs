@@ -1,5 +1,6 @@
 namespace affolterNET.Auth.Core.Configuration;
 
+[Obsolete("remove if not used anymore")]
 public abstract class OptionsBase
 {
     protected readonly Dictionary<string, object?> Options = new();

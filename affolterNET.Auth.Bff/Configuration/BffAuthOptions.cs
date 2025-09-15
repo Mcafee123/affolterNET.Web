@@ -1,41 +1,101 @@
 using affolterNET.Auth.Core.Configuration;
+using Microsoft.Extensions.Configuration;
 
 namespace affolterNET.Auth.Bff.Configuration;
 
-public class BffAuthOptions : AuthConfiguration
+/// <summary>
+/// BFF authentication configuration options combining Core auth provider settings with BFF-specific settings
+/// </summary>
+public class BffAuthOptions : AuthProviderOptions
 {
-    public new const string SectionName = "Auth";
+    /// <summary>
+    /// Configuration section name for binding from appsettings.json
+    /// </summary>
+    public const string SectionName = "affolterNET.Auth:Bff";
+
+    /// <summary>
+    /// Creates default configuration for BFF authentication
+    /// </summary>
+    /// <param name="config">Optional configuration to bind values from</param>
+    /// <returns>BffAuthOptions instance with defaults applied</returns>
+    public static BffAuthOptions CreateDefaults(IConfiguration? config = null)
+    {
+        var options = new BffAuthOptions();
+        
+        if (config != null)
+        {
+            config.GetSection(SectionName).Bind(options);
+        }
+        
+        return options;
+    }
     
+    /// <summary>
+    /// OIDC callback path (default: "/signin-oidc")
+    /// </summary>
+    public string CallbackPath { get; set; } = "/signin-oidc";
+    
+    /// <summary>
+    /// OIDC signout callback path (default: "/signout-callback-oidc")
+    /// </summary>
+    public string SignoutCallBack { get; set; } = "/signout-callback-oidc";
+    
+    /// <summary>
+    /// Post-logout redirect URI for OIDC flows
+    /// </summary>
     public string PostLogoutRedirectUri { get; set; } = "/signout-callback-oidc";
     
+    /// <summary>
+    /// Redirect URI for OIDC flows
+    /// </summary>
+    public string RedirectUri { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Authentication cookie name
+    /// </summary>
+    public string CookieName { get; set; } = ".AspNetCore.Cookies";
+
+    /// <summary>
+    /// Helper method to get redirect URI
+    /// </summary>
+    /// <returns>Configured redirect URI</returns>
+    public string GetRedirectUri()
+    {
+        return RedirectUri;
+    }
+
+    /// <summary>
+    /// Helper method to get scopes as string with fallback
+    /// </summary>
+    /// <param name="defaultValue">Default scopes if none configured</param>
+    /// <returns>Configured scopes or default value</returns>
+    public string GetScopes(string defaultValue = "openid profile email")
+    {
+        return Oidc.GetScopes(defaultValue);
+    }
+
+    /// <summary>
+    /// Helper method to get response type with fallback
+    /// </summary>
+    /// <param name="defaultValue">Default response type if none configured</param>
+    /// <returns>Configured response type or default value</returns>
+    public string GetResponseType(string defaultValue = "code")
+    {
+        return Oidc.GetResponseType(defaultValue);
+    }
+    
+    /// <summary>
+    /// Cookie authentication configuration
+    /// </summary>
     public CookieAuthOptions Cookie { get; set; } = new();
-    public OidcOptions Oidc { get; set; } = new();
+    
+    /// <summary>
+    /// OIDC protocol configuration
+    /// </summary>
+    public Core.Configuration.OidcOptions Oidc { get; set; } = new();
+    
+    /// <summary>
+    /// BFF configuration options
+    /// </summary>
     public BffOptions Bff { get; set; } = new();
-}
-
-public class CookieAuthOptions
-{
-    public string Name { get; set; } = "__Host-bff";
-    public bool HttpOnly { get; set; } = true;
-    public bool Secure { get; set; } = true;
-    public string SameSite { get; set; } = "Strict";
-    public TimeSpan ExpireTimeSpan { get; set; } = TimeSpan.FromHours(8);
-    public bool SlidingExpiration { get; set; } = true;
-}
-
-public class OidcOptions
-{
-    public string ResponseType { get; set; } = "code";
-    public bool SaveTokens { get; set; } = true;
-    public bool UsePkce { get; set; } = true;
-    public string[] ResponseModes { get; set; } = { "query" };
-}
-
-public class BffOptions
-{
-    public bool EnableSessionManagement { get; set; } = true;
-    public string ManagementBasePath { get; set; } = "/bff";
-    public bool RequireLogoutSessionId { get; set; } = false;
-    public bool RevokeRefreshTokenOnLogout { get; set; } = true;
-    public bool BackchannelLogoutAllUserSessions { get; set; } = false;
 }

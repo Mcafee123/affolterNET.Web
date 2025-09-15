@@ -1,4 +1,3 @@
-using affolterNET.Auth.Bff.Extensions;
 using Microsoft.AspNetCore.Builder;
 
 namespace affolterNET.Auth.Bff.Models;
