@@ -4,7 +4,7 @@ namespace affolterNET.Auth.Bff.Configuration;
 
 public class BffAuthOptions : AuthConfiguration
 {
-    public new const string SectionName = "BffAuth";
+    public new const string SectionName = "Auth";
     
     public string PostLogoutRedirectUri { get; set; } = "/signout-callback-oidc";
     
