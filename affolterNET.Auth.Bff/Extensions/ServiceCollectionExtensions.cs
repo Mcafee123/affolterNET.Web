@@ -6,20 +6,21 @@ using affolterNET.Auth.Core.Services;
 using affolterNET.Auth.Bff.Configuration;
 using affolterNET.Auth.Bff.Services;
 using affolterNET.Auth.Bff.Middleware;
+using affolterNET.Auth.Core.Models;
 using Microsoft.Extensions.Logging;
 
 namespace affolterNET.Auth.Bff.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    private static ILogger _logger;
+    private static ILogger? _logger;
 
     /// <summary>
     /// Adds complete BFF authentication with all required services and middleware
     /// This is the single public entry point for BFF authentication
     /// </summary>
-    public static IServiceCollection AddBffAuthentication(this IServiceCollection services,
-        IConfiguration configuration)
+    public static IServiceCollection AddBffServices(this IServiceCollection services,
+        IConfiguration configuration, Action<SwaggerOpt>? swaggerOptions = null)
     {
         _logger = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>()
             .CreateLogger("affolterNET.Auth.Bff");
@@ -29,6 +30,9 @@ public static class ServiceCollectionExtensions
             .AddKeycloakIntegration(configuration)
             .AddRptServices()
             .AddAuthorizationPolicies();
+
+        // Swagger
+        services.AddSwagger(swaggerOptions);
 
         // Add BFF-specific authentication setup
         services.AddBffAuthenticationInternal(configuration);
@@ -134,15 +138,15 @@ public static class ServiceCollectionExtensions
             }!);
             var defaultConfig = configBuilder.Build();
             reverseProxySection = defaultConfig.GetSection("ReverseProxy");
-            
+
             // Log a warning that reverse proxy configuration is missing
-            _logger.LogWarning("Using default empty YARP configuration");
+            _logger?.LogWarning("Using default empty YARP configuration");
         }
 
         services.AddReverseProxy()
             .LoadFromConfig(reverseProxySection)
             .AddTransforms<AuthTransform>();
-        
+
         return services;
     }
 

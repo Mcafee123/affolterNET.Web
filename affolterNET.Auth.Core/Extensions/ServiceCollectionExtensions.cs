@@ -1,13 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Authorization;
 using affolterNET.Auth.Core.Configuration;
 using affolterNET.Auth.Core.Authorization;
-using affolterNET.Auth.Core.Middleware;
+using affolterNET.Auth.Core.Models;
 using affolterNET.Auth.Core.Services;
 using NETCore.Keycloak.Client.HttpClients.Abstraction;
 using NETCore.Keycloak.Client.HttpClients.Implementation;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace affolterNET.Auth.Core.Extensions;
 
@@ -30,7 +30,8 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds Keycloak client integration and configuration
     /// </summary>
-    public static IServiceCollection AddKeycloakIntegration(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddKeycloakIntegration(this IServiceCollection services,
+        IConfiguration configuration)
     {
         // Register unified Auth configuration
         services.Configure<AuthConfiguration>(configuration.GetSection(AuthConfiguration.SectionName));
@@ -77,11 +78,30 @@ public static class ServiceCollectionExtensions
     {
         // Register AuthConfiguration to access SecurityHeaders settings
         var authConfig = AuthConfiguration.Bind(configuration);
-        services.Configure<AuthConfiguration>(config => 
+        services.Configure<AuthConfiguration>(config => { config.SecurityHeaders = authConfig.SecurityHeaders; });
+
+        return services;
+    }
+
+    public static IServiceCollection AddSwagger(this IServiceCollection services, Action<SwaggerOpt>? swaggerOptions = null)
+    {
+        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+        services.AddEndpointsApiExplorer();
+        services.AddSwaggerGen(c =>
         {
-            config.SecurityHeaders = authConfig.SecurityHeaders;
+            var options = new SwaggerOpt();
+            swaggerOptions?.Invoke(options);
+
+            c.SwaggerDoc(options.Version, new() { Title = options.Title, Version = options.Version });
+
+            // Add XML comments if available
+            var xmlFilename = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+            if (File.Exists(xmlPath))
+            {
+                c.IncludeXmlComments(xmlPath);
+            }
         });
-        
         return services;
     }
 }
