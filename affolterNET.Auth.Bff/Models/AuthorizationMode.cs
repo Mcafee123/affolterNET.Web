@@ -1,4 +1,4 @@
-namespace affolterNET.Auth.Bff.Extensions;
+namespace affolterNET.Auth.Bff.Models;
 
 /// <summary>
 /// Authorization modes for the BFF application

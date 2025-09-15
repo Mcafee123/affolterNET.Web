@@ -24,7 +24,7 @@ public class BffAppOptions
     public bool EnableSecurityHeaders { get; set; } = true;
         
     /// <summary>
-    /// Whether to enable HTTPS redirection
+    /// Whether to enable HTTPS redirection (WARNING: dev mode not working when set to false)
     /// </summary>
     public bool EnableHttpsRedirection { get; set; } = true;
         
@@ -56,7 +56,7 @@ public class BffAppOptions
     /// <summary>
     /// API route prefix for handling API-specific behavior
     /// </summary>
-    public string ApiRoutePrefix { get; set; } = "/api";
+    public string[] ApiRoutePrefixes { get; set; } = ["/api"];
         
     /// <summary>
     /// Whether to enable API 404 handling

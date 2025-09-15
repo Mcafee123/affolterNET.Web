@@ -84,7 +84,7 @@ public static class ApplicationBuilderExtensions
             // Custom authorization handling for API routes
             if (options.EnableNoUnauthorizedRedirect)
             {
-                app.UseNoUnauthorizedRedirect(options.ApiRoutePrefix);
+                app.UseMiddleware<NoUnauthorizedRedirectMiddleware>((object)options.ApiRoutePrefixes);
             }
 
             app.UseAuthorization();
@@ -102,7 +102,7 @@ public static class ApplicationBuilderExtensions
         // 11. API 404 handling (Before endpoint mapping)
         if (options.EnableApiNotFound)
         {
-            app.MapNotFound($"{options.ApiRoutePrefix}/{{**segment}}");
+            app.UseMiddleware<ApiNotFoundMiddleware>((object)options.ApiRoutePrefixes);
         }
 
         // 12. ENDPOINT MAPPING
@@ -112,10 +112,7 @@ public static class ApplicationBuilderExtensions
             endpoints.MapControllers();
             
             // YARP Reverse Proxy
-            if (ShouldEnableReverseProxy(configuration, isDevelopment, options))
-            {
-                endpoints.MapReverseProxy();
-            }
+            endpoints.MapReverseProxy();
             
             // Fallback to main page
             if (!string.IsNullOrEmpty(options.FallbackPage))
@@ -125,19 +122,5 @@ public static class ApplicationBuilderExtensions
         });
 
         return app;
-    }
-
-    private static bool ShouldEnableReverseProxy(IConfiguration configuration, bool isDevelopment, BffAppOptions options)
-    {
-        if (!options.EnableReverseProxy)
-            return false;
-
-        if (isDevelopment && options.OnlyReverseProxyInDevelopment)
-        {
-            var uiDevServer = configuration.GetValue<string>("UiDevServerUrl");
-            return !string.IsNullOrEmpty(uiDevServer);
-        }
-
-        return true;
     }
 }

@@ -30,13 +30,13 @@ public static class ServiceCollectionExtensions
             .AddKeycloakIntegration(configuration)
             .AddRptServices()
             .AddAuthorizationPolicies();
-
+        
         // Swagger
         services.AddSwagger(swaggerOptions);
-
+        
         // Add BFF-specific authentication setup
         services.AddBffAuthenticationInternal(configuration);
-
+        
         // Add BFF supporting services
         services.AddAntiforgeryServicesInternal(configuration);
         services.AddSecurityHeaders(configuration);
