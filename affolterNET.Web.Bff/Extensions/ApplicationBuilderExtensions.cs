@@ -60,7 +60,7 @@ public static class ApplicationBuilderExtensions
         }
 
         // 8. AUTHENTICATION & AUTHORIZATION PIPELINE
-        if (bffOptions.Bff.AuthMode != AuthorizationMode.None)
+        if (bffOptions.Bff.AuthMode != AuthenticationMode.None)
         {
             app.UseAuthentication();
 
@@ -69,7 +69,7 @@ public static class ApplicationBuilderExtensions
                 app.UseMiddleware<RefreshTokenMiddleware>();
             }
 
-            if (bffOptions.Bff is { AuthMode: AuthorizationMode.PermissionBased, EnableRptTokens: true })
+            if (bffOptions.Bff is { AuthMode: AuthenticationMode.Authorize, EnableRptTokens: true })
             {
                 app.UseMiddleware<RptMiddleware>();
             }

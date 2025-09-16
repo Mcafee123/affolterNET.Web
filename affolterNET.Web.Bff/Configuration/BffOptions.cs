@@ -76,13 +76,14 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     public string[] ApiRoutePrefixes { get; set; } = ["/api"];
 
     /// <summary>
-    /// Authentication mode for the BFF (default: Cookie)
+    /// Authentication mode for the BFF (default: None)
     /// </summary>
-    public AuthorizationMode AuthMode { get; set; }
+    public AuthenticationMode AuthMode { get; set; }
 
     /// <summary>
     /// Whether to logout all user sessions on backchannel logout
     /// </summary>
+    [Obsolete("not used at the moment")]
     public bool BackchannelLogoutAllUserSessions { get; set; }
 
     /// <summary>
@@ -113,16 +114,19 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// <summary>
     /// Whether to enable unauthorized redirect prevention for API routes
     /// </summary>
+    [Obsolete("not used at the moment")]
     public bool EnableNoUnauthorizedRedirect { get; set; } = true;
 
     /// <summary>
     /// Whether to enable RPT tokens for permission-based auth
     /// </summary>
+    [Obsolete("not used at the moment")]
     public bool EnableRptTokens { get; set; } = true;
 
     /// <summary>
     /// Whether to enable session management
     /// </summary>
+    [Obsolete("not used at the moment")]
     public bool EnableSessionManagement { get; set; }
 
     /// <summary>
@@ -133,11 +137,13 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// <summary>
     /// Whether to enable token refresh middleware
     /// </summary>
+    [Obsolete("not used at the moment")]
     public bool EnableTokenRefresh { get; set; } = true;
 
     /// <summary>
     /// Whether to enable YARP reverse proxy
     /// </summary>
+    [Obsolete("not used at the moment")]
     public bool EnableYarp { get; set; } = true;
 
     /// <summary>
@@ -153,6 +159,7 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// <summary>
     /// Base path for BFF management endpoints
     /// </summary>
+    [Obsolete("not used at the moment")]
     public string ManagementBasePath { get; set; }
 
     /// <summary>
@@ -168,11 +175,13 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// <summary>
     /// Whether to require logout session ID
     /// </summary>
+    [Obsolete("not used at the moment")]
     public bool RequireLogoutSessionId { get; set; }
 
     /// <summary>
     /// Whether to revoke refresh tokens on logout
     /// </summary>
+    [Obsolete("not used at the moment")]
     public bool RevokeRefreshTokenOnLogout { get; set; }
 
     /// <summary>

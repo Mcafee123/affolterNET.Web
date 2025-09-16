@@ -1,9 +1,9 @@
 namespace affolterNET.Web.Bff.Models;
 
 /// <summary>
-/// Authorization modes for the BFF application
+/// Authentication modes for the BFF application
 /// </summary>
-public enum AuthorizationMode
+public enum AuthenticationMode
 {
     /// <summary>
     /// No authentication required - anonymous access
@@ -13,10 +13,10 @@ public enum AuthorizationMode
     /// <summary>
     /// Authentication required but no permission checks
     /// </summary>
-    AuthenticatedOnly,
+    Authenticate,
     
     /// <summary>
     /// Full permission-based authorization with claims
     /// </summary>
-    PermissionBased
+    Authorize
 }
