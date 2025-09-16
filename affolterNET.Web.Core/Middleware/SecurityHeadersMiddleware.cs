@@ -116,7 +116,10 @@ public class SecurityHeadersMiddleware(
         directives.Add($"img-src {imgSrc}");
 
         // Font sources
-        directives.Add("font-src 'self'");
+        var fontSrc = "'self'";
+        if (options.AllowedFontSources.Count > 0)
+            fontSrc += " " + string.Join(" ", options.AllowedFontSources);
+        directives.Add($"font-src {fontSrc}");
 
         // Form actions
         var formAction = "'self'";

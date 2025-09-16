@@ -27,6 +27,7 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
         target.AllowedScriptSources = new List<string>(AllowedScriptSources);
         target.AllowedStyleSources = new List<string>(AllowedStyleSources);
         target.AllowedImageSources = new List<string>(AllowedImageSources);
+        target.AllowedFontSources = new List<string>(AllowedFontSources);
         target.RemoveServerHeader = RemoveServerHeader;
         target.HstsMaxAge = HstsMaxAge;
         target.HstsIncludeSubDomains = HstsIncludeSubDomains;
@@ -62,6 +63,7 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
         AllowedScriptSources = new List<string>();
         AllowedStyleSources = new List<string>();
         AllowedImageSources = new List<string>();
+        AllowedFontSources = new List<string> { "https://cdn.jsdelivr.net" }; // Allow jsdelivr CDN for fonts
         RemoveServerHeader = true;
         HstsMaxAge = settings.IsDev ? 0 : 31536000; // Disable HSTS in development
         HstsIncludeSubDomains = !settings.IsDev; // More relaxed in development
@@ -130,6 +132,11 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
     /// Additional allowed hosts for img-src directive
     /// </summary>
     public List<string> AllowedImageSources { get; set; }
+    
+    /// <summary>
+    /// Additional allowed hosts for font-src directive
+    /// </summary>
+    public List<string> AllowedFontSources { get; set; }
     
     /// <summary>
     /// Whether to remove the Server header (default: true)
