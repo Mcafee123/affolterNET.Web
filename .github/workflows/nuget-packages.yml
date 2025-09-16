@@ -172,6 +172,11 @@ jobs:
         # Update version in all project files
         find . -name "*.csproj" -exec sed -i "s/<Version>.*<\/Version>/<Version>$VERSION<\/Version>/g" {} \;
 
+    - name: Switch to NuGet references
+      run: |
+        ./switch-references.sh nuget
+        echo "Switched to NuGet package references for packaging"
+
     - name: Build projects
       run: |
         dotnet build affolterNET.Web.Core/affolterNET.Web.Core.csproj --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
