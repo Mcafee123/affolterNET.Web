@@ -229,6 +229,7 @@ jobs:
 
     - name: Publish to NuGet.org
       if: |
+        (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
         (github.event_name == 'release' && github.event.action == 'published') || 
         (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_nuget == 'true')
       run: |
