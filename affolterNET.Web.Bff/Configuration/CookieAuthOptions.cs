@@ -18,14 +18,14 @@ public class CookieAuthOptions: IConfigurableOptions<CookieAuthOptions>
         return new CookieAuthOptions(isDev);
     }
 
-    public void CopyTo(CookieAuthOptions options)
+    public void CopyTo(CookieAuthOptions target)
     {
-        options.Name = Name;
-        options.HttpOnly = HttpOnly;
-        options.Secure = Secure;
-        options.SameSite = SameSite;
-        options.ExpireTimeSpan = ExpireTimeSpan;
-        options.SlidingExpiration = SlidingExpiration;
+        target.ExpireTimeSpan = ExpireTimeSpan;
+        target.HttpOnly = HttpOnly;
+        target.Name = Name;
+        target.SameSite = SameSite;
+        target.Secure = Secure;
+        target.SlidingExpiration = SlidingExpiration;
     }
 
     /// <summary>
@@ -50,9 +50,9 @@ public class CookieAuthOptions: IConfigurableOptions<CookieAuthOptions>
     }
 
     /// <summary>
-    /// Cookie name for authentication
+    /// Cookie expiration time span
     /// </summary>
-    public string Name { get; set; }
+    public TimeSpan ExpireTimeSpan { get; set; }
 
     /// <summary>
     /// Whether the cookie should be HttpOnly
@@ -60,9 +60,9 @@ public class CookieAuthOptions: IConfigurableOptions<CookieAuthOptions>
     public bool HttpOnly { get; set; }
 
     /// <summary>
-    /// Whether the cookie should be sent only over HTTPS
+    /// Cookie name for authentication
     /// </summary>
-    public bool Secure { get; set; }
+    public string Name { get; set; }
 
     /// <summary>
     /// SameSite attribute for the cookie
@@ -70,9 +70,9 @@ public class CookieAuthOptions: IConfigurableOptions<CookieAuthOptions>
     public string SameSite { get; set; }
 
     /// <summary>
-    /// Cookie expiration time span
+    /// Whether the cookie should be sent only over HTTPS
     /// </summary>
-    public TimeSpan ExpireTimeSpan { get; set; }
+    public bool Secure { get; set; }
 
     /// <summary>
     /// Whether to use sliding expiration

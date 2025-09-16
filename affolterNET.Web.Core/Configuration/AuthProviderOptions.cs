@@ -19,11 +19,11 @@ public class AuthProviderOptions: IConfigurableOptions<AuthProviderOptions>
 
     public void CopyTo(AuthProviderOptions target)
     {
+        target.Audience = Audience;
         target.AuthorityBase = AuthorityBase;
-        target.Realm = Realm;
         target.ClientId = ClientId;
         target.ClientSecret = ClientSecret;
-        target.Audience = Audience;
+        target.Realm = Realm;
     }
 
     /// <summary>
@@ -46,6 +46,11 @@ public class AuthProviderOptions: IConfigurableOptions<AuthProviderOptions>
     }
 
     /// <summary>
+    /// Expected audience for JWT validation (optional)
+    /// </summary>
+    public string? Audience { get; set; }
+
+    /// <summary>
     /// The full authority URL (e.g., https://keycloak.example.com/realms/myrealm)
     /// </summary>
     public string Authority => $"{AuthorityBase.TrimEnd('/')}/realms/{Realm}";
@@ -54,11 +59,6 @@ public class AuthProviderOptions: IConfigurableOptions<AuthProviderOptions>
     /// Base Keycloak URL without realm (e.g., https://keycloak.example.com)
     /// </summary>
     public string AuthorityBase { get; set; }
-
-    /// <summary>
-    /// Keycloak realm name
-    /// </summary>
-    public string Realm { get; set; }
 
     /// <summary>
     /// OIDC Client ID
@@ -71,7 +71,7 @@ public class AuthProviderOptions: IConfigurableOptions<AuthProviderOptions>
     public string ClientSecret { get; set; }
 
     /// <summary>
-    /// Expected audience for JWT validation (optional)
+    /// Keycloak realm name
     /// </summary>
-    public string? Audience { get; set; }
+    public string Realm { get; set; }
 }

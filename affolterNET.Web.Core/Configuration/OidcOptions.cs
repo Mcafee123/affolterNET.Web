@@ -20,13 +20,13 @@ public class OidcOptions: IConfigurableOptions<OidcOptions>
 
     public void CopyTo(OidcOptions target)
     {
-        target.ResponseType = ResponseType;
-        target.Scopes = Scopes;
-        target.SaveTokens = SaveTokens;
-        target.UsePkce = UsePkce;
-        target.ResponseModes = ResponseModes;
-        target.MapInboundClaims = MapInboundClaims;
         target.GetClaimsFromUserInfoEndpoint = GetClaimsFromUserInfoEndpoint;
+        target.MapInboundClaims = MapInboundClaims;
+        target.ResponseModes = ResponseModes;
+        target.ResponseType = ResponseType;
+        target.SaveTokens = SaveTokens;
+        target.Scopes = Scopes;
+        target.UsePkce = UsePkce;
     }
 
     /// <summary>
@@ -52,29 +52,9 @@ public class OidcOptions: IConfigurableOptions<OidcOptions>
     }
 
     /// <summary>
-    /// OIDC response type (default: "code")
+    /// Whether to get claims from UserInfo endpoint (default: true)
     /// </summary>
-    public string ResponseType { get; set; }
-
-    /// <summary>
-    /// OIDC scopes (space-separated)
-    /// </summary>
-    public string Scopes { get; set; }
-
-    /// <summary>
-    /// Whether to save tokens in authentication properties (default: true)
-    /// </summary>
-    public bool SaveTokens { get; set; }
-
-    /// <summary>
-    /// Whether to use PKCE (Proof Key for Code Exchange) for enhanced security (default: true)
-    /// </summary>
-    public bool UsePkce { get; set; }
-
-    /// <summary>
-    /// Supported response modes
-    /// </summary>
-    public string[] ResponseModes { get; set; }
+    public bool GetClaimsFromUserInfoEndpoint { get; set; }
 
     /// <summary>
     /// Whether to map inbound claims (default: false for better security)
@@ -82,9 +62,29 @@ public class OidcOptions: IConfigurableOptions<OidcOptions>
     public bool MapInboundClaims { get; set; }
 
     /// <summary>
-    /// Whether to get claims from UserInfo endpoint (default: true)
+    /// Supported response modes
     /// </summary>
-    public bool GetClaimsFromUserInfoEndpoint { get; set; }
+    public string[] ResponseModes { get; set; }
+
+    /// <summary>
+    /// OIDC response type (default: "code")
+    /// </summary>
+    public string ResponseType { get; set; }
+
+    /// <summary>
+    /// Whether to save tokens in authentication properties (default: true)
+    /// </summary>
+    public bool SaveTokens { get; set; }
+
+    /// <summary>
+    /// OIDC scopes (space-separated)
+    /// </summary>
+    public string Scopes { get; set; }
+
+    /// <summary>
+    /// Whether to use PKCE (Proof Key for Code Exchange) for enhanced security (default: true)
+    /// </summary>
+    public bool UsePkce { get; set; }
 
     /// <summary>
     /// Helper method to get scopes as string with fallback

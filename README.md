@@ -6,29 +6,29 @@ This library provides flexible authentication and authorization modes for ASP.NE
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                               AUTHORIZATION MODES                                │
+│                               AUTHORIZATION MODES                               │
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────────────┐
-│      NONE       │  │ AUTHENTICATED   │  │        PERMISSION BASED            │
+│      NONE       │  │ AUTHENTICATED   │  │        PERMISSION BASED             │
 │                 │  │     ONLY        │  │                                     │
 │ Anonymous       │  │ Login Required  │  │ Login + Permission Claims Required  │
 │ Access          │  │ No Permissions  │  │ Fine-grained Access Control         │
 └─────────────────┘  └─────────────────┘  └─────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                            ALWAYS ENABLED SERVICES                             │
-│                        (Security & Infrastructure)                             │
+│                            ALWAYS ENABLED SERVICES                              │
+│                        (Security & Infrastructure)                              │
 ├─────────────────────────────────────────────────────────────────────────────────┤
-│ ✅ SecurityHeadersMiddleware     │ CSP, HSTS, X-Frame-Options, etc.            │
+│ ✅ SecurityHeadersMiddleware     │ CSP, HSTS, X-Frame-Options, etc.             │
 │ ✅ AntiforgeryTokenMiddleware    │ CSRF protection                              │
 │ ✅ HTTP Context Accessor         │ Core infrastructure                          │
 │ ✅ Memory Cache                  │ Performance & caching                        │
-│ ✅ YARP Reverse Proxy           │ Frontend/API proxying                        │
+│ ✅ YARP Reverse Proxy           │ Frontend/API proxying                         │
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                           MODE-SPECIFIC SERVICES                               │
+│                           MODE-SPECIFIC SERVICES                                │
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 MODE: NONE                    MODE: AUTHENTICATED ONLY      MODE: PERMISSION BASED
@@ -54,31 +54,31 @@ MODE: NONE                    MODE: AUTHENTICATED ONLY      MODE: PERMISSION BAS
                                                            │ • Fine-grained access    │
                                                            └──────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                               SERVICE MATRIX                                    │
-├─────────────────────────────────┬───────┬───────────────┬─────────────────────┤
-│ Service/Middleware              │ NONE  │ AUTHENTICATED │ PERMISSION BASED    │
-├─────────────────────────────────┼───────┼───────────────┼─────────────────────┤
-│ SecurityHeadersMiddleware       │   ✅   │      ✅        │         ✅           │
-│ AntiforgeryTokenMiddleware      │   ✅   │      ✅        │         ✅           │
-│ HTTP Context Accessor           │   ✅   │      ✅        │         ✅           │
-│ Memory Cache                    │   ✅   │      ✅        │         ✅           │
-│ YARP Reverse Proxy             │   ✅   │      ✅        │         ✅           │
-├─────────────────────────────────┼───────┼───────────────┼─────────────────────┤
-│ Cookie Authentication           │   ❌   │      ✅        │         ✅           │
-│ OIDC Integration               │   ❌   │      ✅        │         ✅           │
-│ UseAuthentication()            │   ❌   │      ✅        │         ✅           │
-│ UseAuthorization()             │   ❌   │      ✅        │         ✅           │
-│ RefreshTokenMiddleware         │   ❌   │      ✅        │         ✅           │
-│ RptMiddleware                  │   ❌   │      ✅        │         ✅           │
-├─────────────────────────────────┼───────┼───────────────┼─────────────────────┤
-│ PermissionAuthPolicyProvider    │   ❌   │      ❌        │         ✅           │
-│ PermissionAuthHandler          │   ❌   │      ❌        │         ✅           │
-│ Keycloak Client                │   ❌   │      ❌        │         ✅           │
-│ RPT Token Service              │   ❌   │      ❌        │         ✅           │
-│ Permission Service             │   ❌   │      ❌        │         ✅           │
-│ Auth Claims Service            │   ❌   │      ❌        │         ✅           │
-└─────────────────────────────────┴───────┴───────────────┴─────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────┐
+│                               SERVICE MATRIX                                   │
+├─────────────────────────────────┬───────┬────────────────┬─────────────────────┤
+│ Service/Middleware              │ NONE  │ AUTHENTICATED  │ PERMISSION BASED    │
+├─────────────────────────────────┼───────┼────────────────┼─────────────────────┤
+│ SecurityHeadersMiddleware       │   ✅   │      ✅        │         ✅          │
+│ AntiforgeryTokenMiddleware      │   ✅   │      ✅        │         ✅          │
+│ HTTP Context Accessor           │   ✅   │      ✅        │         ✅          │
+│ Memory Cache                    │   ✅   │      ✅        │         ✅          │
+│ YARP Reverse Proxy              │   ✅   │      ✅        │         ✅          │
+├─────────────────────────────────┼───────┼────────────────┼─────────────────────┤
+│ Cookie Authentication           │   ❌   │      ✅        │         ✅          │
+│ OIDC Integration                │   ❌   │      ✅        │         ✅          │
+│ UseAuthentication()             │   ❌   │      ✅        │         ✅          │
+│ UseAuthorization()              │   ❌   │      ✅        │         ✅          │
+│ RefreshTokenMiddleware          │   ❌   │      ✅        │         ✅          │
+│ RptMiddleware                   │   ❌   │      ✅        │         ✅          │
+├─────────────────────────────────┼───────┼────────────────┼─────────────────────┤
+│ PermissionAuthPolicyProvider    │   ❌   │      ❌        │         ✅          │
+│ PermissionAuthHandler           │   ❌   │      ❌        │         ✅          │
+│ Keycloak Client                 │   ❌   │      ❌        │         ✅          │
+│ RPT Token Service               │   ❌   │      ❌        │         ✅          │
+│ Permission Service              │   ❌   │      ❌        │         ✅          │
+│ Auth Claims Service             │   ❌   │      ❌        │         ✅          │
+└─────────────────────────────────┴───────┴────────────────┴─────────────────────┘
 ```
 
 ## Configuration
