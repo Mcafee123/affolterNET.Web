@@ -1,4 +1,4 @@
-namespace affolterNET.Web.Bff.Models;
+namespace affolterNET.Web.Core.Models;
 
 /// <summary>
 /// Authentication modes for the BFF application

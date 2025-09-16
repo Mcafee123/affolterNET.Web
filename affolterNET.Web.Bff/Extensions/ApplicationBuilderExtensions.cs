@@ -1,9 +1,9 @@
 using affolterNET.Web.Bff.Configuration;
 using Microsoft.AspNetCore.Builder;
 using affolterNET.Web.Bff.Middleware;
-using affolterNET.Web.Bff.Models;
 using affolterNET.Web.Bff.Options;
 using affolterNET.Web.Core.Middleware;
+using affolterNET.Web.Core.Models;
 
 namespace affolterNET.Web.Bff.Extensions;
 
@@ -46,9 +46,16 @@ public static class ApplicationBuilderExtensions
             app.UseStaticFiles();
         }
 
-        // 5. DEVELOPMENT TOOLS
         // 5. API DOCUMENTATION (Swagger/OpenAPI) - After security, before routing
-        bffOptions.Swagger.ConfigureApiDocumentation?.Invoke(app);
+        if (bffOptions.Swagger.EnableSwagger)
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json",
+                    $"{bffOptions.Swagger.Title} {bffOptions.Swagger.Version}");
+            });
+        }
 
         // 6. ROUTING (Required before auth)
         app.UseRouting();
@@ -103,10 +110,10 @@ public static class ApplicationBuilderExtensions
         {
             endpoints.MapRazorPages();
             endpoints.MapControllers();
-            
+
             // YARP Reverse Proxy
             endpoints.MapReverseProxy();
-            
+
             // Fallback to main page
             if (!string.IsNullOrEmpty(bffOptions.Bff.FallbackPage))
             {

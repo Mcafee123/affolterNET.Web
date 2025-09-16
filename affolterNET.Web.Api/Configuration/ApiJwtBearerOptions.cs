@@ -1,3 +1,4 @@
+using affolterNET.Web.Core.Models;
 using affolterNET.Web.Core.Options;
 
 namespace affolterNET.Web.Api.Configuration;
@@ -12,9 +13,9 @@ public class ApiJwtBearerOptions: IConfigurableOptions<ApiJwtBearerOptions>
     /// </summary>
     public static string SectionName => "affolterNET.Web:Api:JwtBearer";
 
-    public static ApiJwtBearerOptions CreateDefaults(bool isDev)
+    public static ApiJwtBearerOptions CreateDefaults(AppSettings appSettings)
     {
-        return new ApiJwtBearerOptions(isDev);
+        return new ApiJwtBearerOptions(appSettings);
     }
 
     public void CopyTo(ApiJwtBearerOptions target)
@@ -35,26 +36,26 @@ public class ApiJwtBearerOptions: IConfigurableOptions<ApiJwtBearerOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public ApiJwtBearerOptions() : this(false)
+    public ApiJwtBearerOptions() : this(new AppSettings(false, AuthenticationMode.None))
     {
     }
-    
+
     /// <summary>
     /// Constructor with environment parameter for meaningful defaults
     /// </summary>
-    /// <param name="isDev">Whether running in development mode</param>
-    private ApiJwtBearerOptions(bool isDev)
+    /// <param name="appSettings"></param>
+    private ApiJwtBearerOptions(AppSettings appSettings)
     {
         ValidateIssuer = true;
         ValidateAudience = true;
         ValidateLifetime = true;
         ValidateIssuerSigningKey = true;
-        RequireHttpsMetadata = !isDev; // Allow HTTP in development
+        RequireHttpsMetadata = !appSettings.IsDev; // Allow HTTP in development
         SaveToken = false; // Don't save tokens in AuthenticationProperties for APIs
-        IncludeErrorDetails = isDev; // Include detailed error info in development
+        IncludeErrorDetails = appSettings.IsDev; // Include detailed error info in development
         ClockSkew = TimeSpan.FromMinutes(5); // Allow 5 minutes of clock skew
-        ValidAudiences = Array.Empty<string>();
-        ValidIssuers = Array.Empty<string>();
+        ValidAudiences = [];
+        ValidIssuers = [];
         TokenType = "JWT";
     }
 

@@ -1,3 +1,4 @@
+using affolterNET.Web.Core.Models;
 using affolterNET.Web.Core.Options;
 using Microsoft.Extensions.Configuration;
 
@@ -13,9 +14,9 @@ public class PermissionCacheOptions: IConfigurableOptions<PermissionCacheOptions
     /// </summary>
     public static string SectionName => "affolterNET.Web:PermissionCache";
 
-    public static PermissionCacheOptions CreateDefaults(bool isDev)
+    public static PermissionCacheOptions CreateDefaults(AppSettings settings)
     {
-        return new PermissionCacheOptions(isDev);
+        return new PermissionCacheOptions(settings);
     }
 
     public void CopyTo(PermissionCacheOptions target)
@@ -28,19 +29,19 @@ public class PermissionCacheOptions: IConfigurableOptions<PermissionCacheOptions
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public PermissionCacheOptions() : this(false)
+    public PermissionCacheOptions() : this(new AppSettings(false, AuthenticationMode.None))
     {
     }
     
     /// <summary>
-    /// Constructor with environment parameter for meaningful defaults
+    /// Constructor with settings parameter for meaningful defaults
     /// </summary>
-    /// <param name="isDev">Whether running in development mode</param>
-    private PermissionCacheOptions(bool isDev)
+    /// <param name="settings">Application settings containing development mode and authentication mode</param>
+    private PermissionCacheOptions(AppSettings settings)
     {
-        DefaultExpiration = isDev ? TimeSpan.FromMinutes(5) : TimeSpan.FromMinutes(15); // Shorter cache in development
-        PermissionCacheExpiration = isDev ? TimeSpan.FromMinutes(3) : TimeSpan.FromMinutes(10); // Shorter permission cache in development
-        MaxCacheSize = isDev ? 100 : 1000; // Smaller cache size in development
+        DefaultExpiration = settings.IsDev ? TimeSpan.FromMinutes(5) : TimeSpan.FromMinutes(15); // Shorter cache in development
+        PermissionCacheExpiration = settings.IsDev ? TimeSpan.FromMinutes(3) : TimeSpan.FromMinutes(10); // Shorter permission cache in development
+        MaxCacheSize = settings.IsDev ? 100 : 1000; // Smaller cache size in development
     }
 
     /// <summary>

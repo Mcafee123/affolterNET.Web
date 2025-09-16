@@ -1,5 +1,6 @@
 using affolterNET.Web.Core.Options;
 using Microsoft.Extensions.Configuration;
+using affolterNET.Web.Core.Models;
 
 namespace affolterNET.Web.Bff.Configuration;
 
@@ -13,9 +14,9 @@ public class BffAntiforgeryOptions: IConfigurableOptions<BffAntiforgeryOptions>
     /// </summary>
     public static string SectionName => "affolterNET.Web:Bff:Antiforgery";
 
-    public static BffAntiforgeryOptions CreateDefaults(bool isDev)
+    public static BffAntiforgeryOptions CreateDefaults(AppSettings settings)
     {
-        return new BffAntiforgeryOptions(isDev);
+        return new BffAntiforgeryOptions(settings);
     }
 
     public void CopyTo(BffAntiforgeryOptions target)
@@ -31,22 +32,22 @@ public class BffAntiforgeryOptions: IConfigurableOptions<BffAntiforgeryOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public BffAntiforgeryOptions() : this(false)
+    public BffAntiforgeryOptions() : this(new AppSettings(false, AuthenticationMode.None))
     {
     }
     
     /// <summary>
-    /// Constructor with environment parameter for meaningful defaults
+    /// Constructor with BffAppSettings parameter for meaningful defaults
     /// </summary>
-    /// <param name="isDev">Whether running in development mode</param>
-    private BffAntiforgeryOptions(bool isDev)
+    /// <param name="settings">Application settings containing environment and authentication mode</param>
+    private BffAntiforgeryOptions(AppSettings settings)
     {
         ServerCookieName = "__Host-X-XSRF-TOKEN";
         ClientCookieName = "X-XSRF-TOKEN";
         HeaderName = "X-XSRF-TOKEN";
         CookiePath = "/";
-        SameSiteMode = isDev ? Microsoft.AspNetCore.Http.SameSiteMode.Lax : Microsoft.AspNetCore.Http.SameSiteMode.Strict;
-        RequireSecure = !isDev; // Allow non-secure cookies in development
+        SameSiteMode = settings.IsDev ? Microsoft.AspNetCore.Http.SameSiteMode.Lax : Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+        RequireSecure = !settings.IsDev; // Allow non-secure cookies in development
     }
 
     /// <summary>

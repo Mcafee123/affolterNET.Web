@@ -1,6 +1,6 @@
-using affolterNET.Web.Bff.Models;
 using affolterNET.Web.Core.Options;
 using Microsoft.AspNetCore.Builder;
+using affolterNET.Web.Core.Models;
 
 namespace affolterNET.Web.Bff.Configuration;
 
@@ -14,9 +14,9 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// </summary>
     public static string SectionName => "affolterNET.Web:Bff:Options";
 
-    public static BffOptions CreateDefaults(bool isDev)
+    public static BffOptions CreateDefaults(AppSettings settings)
     {
-        return new BffOptions(isDev);
+        return new BffOptions(settings);
     }
 
     public void CopyTo(BffOptions options)
@@ -48,15 +48,15 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public BffOptions() : this(false)
+    public BffOptions() : this(new AppSettings(false, AuthenticationMode.None))
     {
     }
     
     /// <summary>
-    /// Constructor with environment parameter for meaningful defaults
+    /// Constructor with BffAppSettings parameter for meaningful defaults
     /// </summary>
-    /// <param name="isDev">Whether running in development mode</param>
-    private BffOptions(bool isDev)
+    /// <param name="settings">Application settings containing environment and authentication mode</param>
+    private BffOptions(AppSettings settings)
     {
         CallbackPath = "/signin-oidc";
         SignoutCallBack = "/signout-callback-oidc";

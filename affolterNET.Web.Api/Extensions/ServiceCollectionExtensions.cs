@@ -1,12 +1,11 @@
-using affolterNET.Web.Api.Configuration;
 using affolterNET.Web.Api.Options;
 using affolterNET.Web.Api.Services;
-using affolterNET.Web.Core.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using affolterNET.Web.Core.Extensions;
+using affolterNET.Web.Core.Models;
 using affolterNET.Web.Core.Services;
 using Microsoft.Extensions.Logging;
 
@@ -20,7 +19,7 @@ public static class ServiceCollectionExtensions
     /// Adds complete API authentication with JWT Bearer, authorization policies, and security headers
     /// This is the single public entry point for API authentication
     /// </summary>
-    public static IServiceCollection AddApiAuthentication(this IServiceCollection services, bool isDev,
+    public static IServiceCollection AddApiAuthentication(this IServiceCollection services, AppSettings appSettings,
         IConfiguration configuration,
         Action<ApiAppOptions>? configureOptions = null)
     {
@@ -28,7 +27,7 @@ public static class ServiceCollectionExtensions
             .CreateLogger("affolterNET.Auth.Bff");
 
         // 1. Create BffAppOptions instance with constructor defaults
-        var apiOptions = new ApiAppOptions(isDev, configuration);
+        var apiOptions = new ApiAppOptions(appSettings, configuration);
         configureOptions?.Invoke(apiOptions);
         apiOptions.Configure(services);
 

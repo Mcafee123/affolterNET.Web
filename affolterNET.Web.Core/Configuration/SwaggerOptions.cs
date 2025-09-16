@@ -1,5 +1,6 @@
+using System.Reflection;
 using affolterNET.Web.Core.Options;
-using Microsoft.AspNetCore.Builder;
+using affolterNET.Web.Core.Models;
 
 namespace affolterNET.Web.Core.Configuration;
 
@@ -15,13 +16,14 @@ public class SwaggerOptions: IConfigurableOptions<SwaggerOptions>
         throw new NotImplementedException();
     }
 
-    public static SwaggerOptions CreateDefaults(bool isDev)
+    public static SwaggerOptions CreateDefaults(AppSettings settings)
     {
-        return new SwaggerOptions(isDev);
+        return new SwaggerOptions(settings);
     }
 
     public void CopyTo(SwaggerOptions target)
     {
+        target.EnableSwagger = EnableSwagger;
         target.Title = Title;
         target.Version = Version;
     }
@@ -29,25 +31,23 @@ public class SwaggerOptions: IConfigurableOptions<SwaggerOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public SwaggerOptions() : this(false)
+    public SwaggerOptions() : this(new AppSettings(false, AuthenticationMode.None))
     {
     }
 
     /// <summary>
-    /// Constructor with environment parameter for meaningful defaults
+    /// Constructor with BffAppSettings parameter for meaningful defaults
     /// </summary>
-    /// <param name="isDev">Whether running in development mode</param>
-    private SwaggerOptions(bool isDev)
+    /// <param name="settings">Application settings containing environment and authentication mode</param>
+    private SwaggerOptions(AppSettings settings)
     {
-        Title = "API Documentation";
+        var env = settings.IsDev ? "DEV" : "PROD";
+        Title = $"{Assembly.GetEntryAssembly()?.GetName().Name} - {env} - API";
         Version = "v1";
+        EnableSwagger = true;
     }
 
     public string Title { get; set; }
     public string Version { get; set; }
-    
-    /// <summary>
-    /// Configuration action for API documentation (Swagger/OpenAPI) - called after security but before routing
-    /// </summary>
-    public Action<IApplicationBuilder>? ConfigureApiDocumentation { get; set; }
+    public bool EnableSwagger { get; set; }
 }

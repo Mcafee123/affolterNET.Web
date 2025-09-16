@@ -1,5 +1,6 @@
 using affolterNET.Web.Core.Options;
 using Microsoft.Extensions.Configuration;
+using affolterNET.Web.Core.Models;
 
 namespace affolterNET.Web.Bff.Configuration;
 
@@ -13,9 +14,9 @@ public class CookieAuthOptions: IConfigurableOptions<CookieAuthOptions>
     /// </summary>
     public static string SectionName => "affolterNET.Web:Cookie";
 
-    public static CookieAuthOptions CreateDefaults(bool isDev)
+    public static CookieAuthOptions CreateDefaults(AppSettings settings)
     {
-        return new CookieAuthOptions(isDev);
+        return new CookieAuthOptions(settings);
     }
 
     public void CopyTo(CookieAuthOptions target)
@@ -31,21 +32,21 @@ public class CookieAuthOptions: IConfigurableOptions<CookieAuthOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public CookieAuthOptions() : this(false)
+    public CookieAuthOptions() : this(new AppSettings(false, AuthenticationMode.None))
     {
     }
     
     /// <summary>
-    /// Constructor with environment parameter for meaningful defaults
+    /// Constructor with BffAppSettings parameter for meaningful defaults
     /// </summary>
-    /// <param name="isDev">Whether running in development mode</param>
-    private CookieAuthOptions(bool isDev)
+    /// <param name="settings">Application settings containing environment and authentication mode</param>
+    private CookieAuthOptions(AppSettings settings)
     {
         Name = "__Host-bff";
         HttpOnly = true;
-        Secure = !isDev; // Allow non-secure cookies in development
-        SameSite = isDev ? "Lax" : "Strict"; // More relaxed in development
-        ExpireTimeSpan = isDev ? TimeSpan.FromHours(4) : TimeSpan.FromHours(8); // Shorter session in development
+        Secure = !settings.IsDev; // Allow non-secure cookies in development
+        SameSite = settings.IsDev ? "Lax" : "Strict"; // More relaxed in development
+        ExpireTimeSpan = settings.IsDev ? TimeSpan.FromHours(4) : TimeSpan.FromHours(8); // Shorter session in development
         SlidingExpiration = true;
     }
 

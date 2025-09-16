@@ -1,5 +1,6 @@
 using affolterNET.Web.Core.Options;
 using Microsoft.Extensions.Configuration;
+using affolterNET.Web.Core.Models;
 
 namespace affolterNET.Web.Core.Configuration;
 
@@ -13,9 +14,9 @@ public class RptOptions: IConfigurableOptions<RptOptions>
     /// </summary>
     public static string SectionName => "affolterNET.Web:Bff:Rpt";
 
-    public static RptOptions CreateDefaults(bool isDev)
+    public static RptOptions CreateDefaults(AppSettings settings)
     {
-        return new RptOptions(isDev);
+        return new RptOptions(settings);
     }
 
     public void CopyTo(RptOptions options)
@@ -29,20 +30,20 @@ public class RptOptions: IConfigurableOptions<RptOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public RptOptions() : this(false)
+    public RptOptions() : this(new AppSettings(false, AuthenticationMode.None))
     {
     }
     
     /// <summary>
-    /// Constructor with environment parameter for meaningful defaults
+    /// Constructor with settings parameter for meaningful defaults
     /// </summary>
-    /// <param name="isDev">Whether running in development mode</param>
-    private RptOptions(bool isDev)
+    /// <param name="settings">Application settings containing development mode and authentication mode</param>
+    private RptOptions(AppSettings settings)
     {
         Endpoint = "/realms/{realm}/protocol/openid_connect/token";
         Audience = string.Empty;
         EnableCaching = true;
-        CacheExpiration = isDev ? TimeSpan.FromMinutes(5) : TimeSpan.FromMinutes(10); // Shorter cache in development
+        CacheExpiration = settings.IsDev ? TimeSpan.FromMinutes(5) : TimeSpan.FromMinutes(10); // Shorter cache in development
     }
 
     /// <summary>

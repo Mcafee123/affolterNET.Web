@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting;
 using affolterNET.Web.Core.Configuration;
 
 namespace affolterNET.Web.Core.Middleware;
@@ -24,7 +25,7 @@ public class SecurityHeadersMiddleware(
             // Generate nonce for this request
             var nonce = GenerateNonce();
             context.Items[NonceKey] = nonce;
-            
+
             AddSecurityHeaders(context, options, nonce);
         }
 
@@ -57,10 +58,11 @@ public class SecurityHeadersMiddleware(
         headers.Append("Cross-Origin-Resource-Policy", "same-origin");
 
         // Cross-Origin-Embedder-Policy: Enable SharedArrayBuffer
-        if (!options.isDev)
-        {
-            headers.Append("Cross-Origin-Embedder-Policy", "require-corp");
-        }
+        // ToDo: Check for dev-mode in options
+        // if (!options.isDev)
+        // {
+        //     headers.Append("Cross-Origin-Embedder-Policy", "require-corp");
+        // }
 
         // Permissions-Policy: Control browser features
         headers.Append("Permissions-Policy", 
@@ -73,15 +75,16 @@ public class SecurityHeadersMiddleware(
             "web-share=(), xr-spatial-tracking=()");
 
         // Strict-Transport-Security: Enforce HTTPS
-        if (!options.isDev && context.Request.IsHttps)
-        {
-            var hstsValue = $"max-age={options.HstsMaxAge}";
-            if (options.HstsIncludeSubDomains)
-                hstsValue += "; includeSubDomains";
-            if (options.HstsPreload)
-                hstsValue += "; preload";
-            headers.Append("Strict-Transport-Security", hstsValue);
-        }
+        // ToDo: Check for dev-mode in options
+        // if (!options.isDev && context.Request.IsHttps)
+        // {
+        //     var hstsValue = $"max-age={options.HstsMaxAge}";
+        //     if (options.HstsIncludeSubDomains)
+        //         hstsValue += "; includeSubDomains";
+        //     if (options.HstsPreload)
+        //         hstsValue += "; preload";
+        //     headers.Append("Strict-Transport-Security", hstsValue);
+        // }
 
         // Content-Security-Policy: Comprehensive CSP
         var csp = BuildContentSecurityPolicy(options, nonce);
@@ -116,28 +119,30 @@ public class SecurityHeadersMiddleware(
 
         // Script sources
         var scriptSrc = "'self'";
-        if (options.isDev)
-        {
-            scriptSrc += " 'unsafe-inline' 'unsafe-eval'";
-        }
-        else
-        {
-            scriptSrc += $" 'nonce-{nonce}'";
-        }
+        // ToDo: Check for dev-mode in options
+        // if (options.isDev)
+        // {
+        //     scriptSrc += " 'unsafe-inline' 'unsafe-eval'";
+        // }
+        // else
+        // {
+        //     scriptSrc += $" 'nonce-{nonce}'";
+        // }
         if (options.AllowedScriptSources.Count > 0)
             scriptSrc += " " + string.Join(" ", options.AllowedScriptSources);
         directives.Add($"script-src {scriptSrc}");
 
         // Style sources
         var styleSrc = "'self'";
-        if (options.isDev)
-        {
-            styleSrc += " 'unsafe-inline'";
-        }
-        else
-        {
-            styleSrc += $" 'nonce-{nonce}' 'unsafe-inline'";
-        }
+        // ToDo: Check for dev-mode in options
+        // if (options.isDev)
+        // {
+        //     styleSrc += " 'unsafe-inline'";
+        // }
+        // else
+        // {
+        //     styleSrc += $" 'nonce-{nonce}' 'unsafe-inline'";
+        // }
         if (options.AllowedStyleSources.Count > 0)
             styleSrc += " " + string.Join(" ", options.AllowedStyleSources);
         directives.Add($"style-src {styleSrc}");

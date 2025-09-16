@@ -1,4 +1,5 @@
 using affolterNET.Web.Core.Options;
+using affolterNET.Web.Core.Models;
 
 namespace affolterNET.Web.Core.Configuration;
 
@@ -12,9 +13,9 @@ public class AuthProviderOptions: IConfigurableOptions<AuthProviderOptions>
     /// </summary>
     public static string SectionName => "affolterNET.Web:Provider";
 
-    public static AuthProviderOptions CreateDefaults(bool isDev)
+    public static AuthProviderOptions CreateDefaults(AppSettings settings)
     {
-        return new AuthProviderOptions(isDev);
+        return new AuthProviderOptions(settings);
     }
 
     public void CopyTo(AuthProviderOptions target)
@@ -29,15 +30,15 @@ public class AuthProviderOptions: IConfigurableOptions<AuthProviderOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public AuthProviderOptions() : this(false)
+    public AuthProviderOptions() : this(new AppSettings(false, AuthenticationMode.None))
     {
     }
 
     /// <summary>
-    /// Constructor with environment parameter for meaningful defaults
+    /// Constructor with BffAppSettings parameter for meaningful defaults
     /// </summary>
-    /// <param name="isDev">Whether running in development mode</param>
-    private AuthProviderOptions(bool isDev)
+    /// <param name="settings">Application settings containing environment and authentication mode</param>
+    private AuthProviderOptions(AppSettings settings)
     {
         AuthorityBase = string.Empty;
         Realm = string.Empty;

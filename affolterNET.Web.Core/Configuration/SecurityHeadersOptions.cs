@@ -1,3 +1,4 @@
+using affolterNET.Web.Core.Models;
 using affolterNET.Web.Core.Options;
 using Microsoft.Extensions.Configuration;
 
@@ -13,15 +14,14 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
     /// </summary>
     public static string SectionName => "affolterNET.Web:SecurityHeaders";
 
-    public static SecurityHeadersOptions CreateDefaults(bool isDev)
+    public static SecurityHeadersOptions CreateDefaults(AppSettings settings)
     {
-        return new SecurityHeadersOptions(isDev);
+        return new SecurityHeadersOptions(settings);
     }
 
     public void CopyTo(SecurityHeadersOptions target)
     {
         target.Enabled = Enabled;
-        target.isDev = isDev;
         target.IdpHost = IdpHost;
         target.AllowedConnectSources = new List<string>(AllowedConnectSources);
         target.AllowedScriptSources = new List<string>(AllowedScriptSources);
@@ -37,15 +37,15 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public SecurityHeadersOptions() : this(false)
+    public SecurityHeadersOptions() : this(new AppSettings(false, AuthenticationMode.None))
     {
     }
     
     /// <summary>
-    /// Constructor with environment parameter for meaningful defaults
+    /// Constructor with settings parameter for meaningful defaults
     /// </summary>
-    /// <param name="isDev">Whether running in development mode</param>
-    private SecurityHeadersOptions(bool isDev)
+    /// <param name="settings">Application settings containing development mode and authentication mode</param>
+    private SecurityHeadersOptions(AppSettings settings)
     {
         Enabled = true;
         IdpHost = string.Empty;
@@ -54,13 +54,13 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
         AllowedStyleSources = new List<string>();
         AllowedImageSources = new List<string>();
         RemoveServerHeader = true;
-        HstsMaxAge = isDev ? 0 : 31536000; // Disable HSTS in development
-        HstsIncludeSubDomains = !isDev; // More relaxed in development
+        HstsMaxAge = settings.IsDev ? 0 : 31536000; // Disable HSTS in development
+        HstsIncludeSubDomains = !settings.IsDev; // More relaxed in development
         HstsPreload = false;
         CustomCspDirectives = new Dictionary<string, string>();
         
         // Development-specific defaults
-        if (isDev)
+        if (settings.IsDev)
         {
             // Allow localhost for development
             AllowedConnectSources.Add("http://localhost:*");
@@ -74,11 +74,6 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
     /// Whether to enable security headers (default: true)
     /// </summary>
     public bool Enabled { get; set; }
-    
-    /// <summary>
-    /// Whether running in development mode (affects CSP strictness)
-    /// </summary>
-    public bool isDev { get; set; }
     
     /// <summary>
     /// Identity provider host for Content Security Policy form-action directive

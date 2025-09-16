@@ -1,5 +1,6 @@
 using affolterNET.Web.Core.Options;
 using Microsoft.Extensions.Configuration;
+using affolterNET.Web.Core.Models;
 
 namespace affolterNET.Web.Core.Configuration;
 
@@ -13,9 +14,9 @@ public class OidcOptions: IConfigurableOptions<OidcOptions>
     /// </summary>
     public static string SectionName => "affolterNET.Web:Oidc";
 
-    public static OidcOptions CreateDefaults(bool isDev)
+    public static OidcOptions CreateDefaults(AppSettings settings)
     {
-        return new OidcOptions(isDev);
+        return new OidcOptions(settings);
     }
 
     public void CopyTo(OidcOptions target)
@@ -32,15 +33,15 @@ public class OidcOptions: IConfigurableOptions<OidcOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public OidcOptions() : this(false)
+    public OidcOptions() : this(new AppSettings(false, AuthenticationMode.None))
     {
     }
     
     /// <summary>
-    /// Constructor with environment parameter for meaningful defaults
+    /// Constructor with AppSettings parameter for meaningful defaults
     /// </summary>
-    /// <param name="isDev">Whether running in development mode</param>
-    private OidcOptions(bool isDev)
+    /// <param name="settings">Application settings containing environment and authentication mode</param>
+    private OidcOptions(AppSettings settings)
     {
         ResponseType = "code";
         Scopes = "openid profile email";

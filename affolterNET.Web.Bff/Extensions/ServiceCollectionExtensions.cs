@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using affolterNET.Web.Core.Extensions;
+using affolterNET.Web.Core.Models;
 using affolterNET.Web.Core.Services;
 using Microsoft.Extensions.Logging;
 
@@ -19,14 +20,14 @@ public static class ServiceCollectionExtensions
     /// Adds complete BFF authentication with all required services and middleware
     /// This is the single public entry point for BFF authentication
     /// </summary>
-    public static BffAppOptions AddBffServices(this IServiceCollection services, bool isDev, IConfiguration configuration,
+    public static BffAppOptions AddBffServices(this IServiceCollection services, AppSettings appSettings, IConfiguration configuration,
         Action<BffAppOptions>? configureOptions = null)
     {
         _logger = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>()
             .CreateLogger("affolterNET.Auth.Bff");
 
         // 1. Create BffAppOptions instance with constructor defaults
-        var bffOptions = new BffAppOptions(isDev, configuration);
+        var bffOptions = new BffAppOptions(appSettings, configuration);
         configureOptions?.Invoke(bffOptions);
         bffOptions.Configure(services);
         

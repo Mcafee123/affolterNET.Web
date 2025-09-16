@@ -1,4 +1,5 @@
 using affolterNET.Web.Core.Configuration;
+using affolterNET.Web.Core.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -6,13 +7,13 @@ namespace affolterNET.Web.Core.Options;
 
 public abstract class CoreAppOptions
 {
-    protected CoreAppOptions(bool isDev, IConfiguration config)
+    protected CoreAppOptions(AppSettings appSettings, IConfiguration config)
     {
-        AuthProvider = config.CreateFromConfig<AuthProviderOptions>(isDev);
-        Oidc = config.CreateFromConfig<OidcOptions>(isDev);
-        PermissionCache = config.CreateFromConfig<PermissionCacheOptions>(isDev);
-        SecurityHeaders = config.CreateFromConfig<SecurityHeadersOptions>(isDev);
-        Swagger = config.CreateFromConfig<SwaggerOptions>(isDev);
+        AuthProvider = config.CreateFromConfig<AuthProviderOptions>(appSettings);
+        Oidc = config.CreateFromConfig<OidcOptions>(appSettings);
+        PermissionCache = config.CreateFromConfig<PermissionCacheOptions>(appSettings);
+        SecurityHeaders = config.CreateFromConfig<SecurityHeadersOptions>(appSettings);
+        Swagger = config.CreateFromConfig<SwaggerOptions>(appSettings);
     }
     
     /// <summary>
