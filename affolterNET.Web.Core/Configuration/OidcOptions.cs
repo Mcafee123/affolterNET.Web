@@ -33,7 +33,7 @@ public class OidcOptions: IConfigurableOptions<OidcOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public OidcOptions() : this(new AppSettings(false, AuthenticationMode.None))
+    public OidcOptions() : this(new AppSettings())
     {
     }
     

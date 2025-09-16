@@ -32,12 +32,21 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
         target.HstsIncludeSubDomains = HstsIncludeSubDomains;
         target.HstsPreload = HstsPreload;
         target.CustomCspDirectives = new Dictionary<string, string>(CustomCspDirectives);
+        target.XFrameOptions = XFrameOptions;
+        target.XContentTypeOptions = XContentTypeOptions;
+        target.ReferrerPolicy = ReferrerPolicy;
+        target.CrossOriginOpenerPolicy = CrossOriginOpenerPolicy;
+        target.CrossOriginResourcePolicy = CrossOriginResourcePolicy;
+        target.CrossOriginEmbedderPolicy = CrossOriginEmbedderPolicy;
+        target.PermissionsPolicy = PermissionsPolicy;
+        target.EnableHsts = EnableHsts;
+        target.UiDevServerUrl = UiDevServerUrl;
     }
 
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public SecurityHeadersOptions() : this(new AppSettings(false, AuthenticationMode.None))
+    public SecurityHeadersOptions() : this(new AppSettings())
     {
     }
     
@@ -56,8 +65,24 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
         RemoveServerHeader = true;
         HstsMaxAge = settings.IsDev ? 0 : 31536000; // Disable HSTS in development
         HstsIncludeSubDomains = !settings.IsDev; // More relaxed in development
-        HstsPreload = false;
+        HstsPreload = !settings.IsDev; // Enable preload only in production
         CustomCspDirectives = new Dictionary<string, string>();
+        
+        // Security header defaults
+        XFrameOptions = "DENY";
+        XContentTypeOptions = "nosniff";
+        ReferrerPolicy = "strict-origin-when-cross-origin";
+        CrossOriginOpenerPolicy = "same-origin";
+        CrossOriginResourcePolicy = settings.IsDev ? "cross-origin" : "same-origin"; // More relaxed for dev with proxy
+        CrossOriginEmbedderPolicy = settings.IsDev ? string.Empty : "require-corp"; // Disabled in dev, enabled in prod
+        PermissionsPolicy = "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), " +
+                           "cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), " +
+                           "execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), " +
+                           "geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), " +
+                           "midi=(), navigation-override=(), payment=(), picture-in-picture=(), " +
+                           "publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), " +
+                           "web-share=(), xr-spatial-tracking=()";
+        EnableHsts = !settings.IsDev; // Disable HSTS in development
         
         // Development-specific defaults
         if (settings.IsDev)
@@ -67,7 +92,13 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
             AllowedConnectSources.Add("https://localhost:*");
             AllowedConnectSources.Add("ws://localhost:*");
             AllowedConnectSources.Add("wss://localhost:*");
+            
+            // Add Vue/Vite dev server support
+            AllowedScriptSources.Add("'unsafe-eval'"); // Required for Vue dev server hot reload
+            AllowedStyleSources.Add("'unsafe-inline'"); // Required for Vue dev server inline styles
         }
+
+        UiDevServerUrl = string.Empty;
     }
 
     /// <summary>
@@ -124,4 +155,51 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
     /// Custom CSP directives as key-value pairs
     /// </summary>
     public Dictionary<string, string> CustomCspDirectives { get; set; }
+    
+    // Security Header Configuration Properties
+    
+    /// <summary>
+    /// X-Frame-Options header value (default: "DENY")
+    /// </summary>
+    public string XFrameOptions { get; set; }
+    
+    /// <summary>
+    /// X-Content-Type-Options header value (default: "nosniff")
+    /// </summary>
+    public string XContentTypeOptions { get; set; }
+    
+    /// <summary>
+    /// Referrer-Policy header value (default: "strict-origin-when-cross-origin")
+    /// </summary>
+    public string ReferrerPolicy { get; set; }
+    
+    /// <summary>
+    /// Cross-Origin-Opener-Policy header value (default: "same-origin")
+    /// </summary>
+    public string CrossOriginOpenerPolicy { get; set; }
+    
+    /// <summary>
+    /// Cross-Origin-Resource-Policy header value (default: "same-origin")
+    /// </summary>
+    public string CrossOriginResourcePolicy { get; set; }
+    
+    /// <summary>
+    /// Cross-Origin-Embedder-Policy header value (default: empty, set to "require-corp" for production)
+    /// </summary>
+    public string CrossOriginEmbedderPolicy { get; set; }
+    
+    /// <summary>
+    /// Permissions-Policy header value (default: restrictive policy disabling most features)
+    /// </summary>
+    public string PermissionsPolicy { get; set; }
+    
+    /// <summary>
+    /// Whether to enable HSTS (Strict-Transport-Security) header
+    /// </summary>
+    public bool EnableHsts { get; set; }
+
+    /// <summary>
+    /// Dev Server Url for CSP configuration (e.g., "https://localhost:5173")
+    /// </summary>
+    public string UiDevServerUrl { get; set; }
 }

@@ -22,8 +22,12 @@ public class ApiAppOptions : CoreAppOptions
 
     public void Configure(IServiceCollection services)
     {
+        var actions = new ConfigureActions();
+        actions.Add(ConfigureApiJwtBearer);
+        
+        ApiJwtBearer.Configure(services, actions);
+        
         ConfigureCore(services);
-        ApiJwtBearer.Configure(services, ConfigureApiJwtBearer);
     }
 
     /// <summary>

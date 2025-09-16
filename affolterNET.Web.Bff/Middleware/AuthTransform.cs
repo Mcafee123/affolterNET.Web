@@ -1,8 +1,9 @@
+using affolterNET.Web.Bff.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Transforms.Builder;
 
@@ -11,17 +12,9 @@ namespace affolterNET.Web.Bff.Middleware;
 /// <summary>
 /// YARP transform that adds authentication tokens to proxied requests
 /// </summary>
-public class AuthTransform : ITransformProvider
+public class AuthTransform(IOptionsMonitor<BffOptions> bffOptions, ILogger<AuthTransform> logger)
+    : ITransformProvider
 {
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<AuthTransform> _logger;
-
-    public AuthTransform(IConfiguration configuration, ILogger<AuthTransform> logger)
-    {
-        _configuration = configuration;
-        _logger = logger;
-    }
-
     public void ValidateRoute(TransformRouteValidationContext context)
     {
         // No validation needed
@@ -34,7 +27,7 @@ public class AuthTransform : ITransformProvider
 
     public void Apply(TransformBuilderContext context)
     {
-        var uiDevServer = _configuration.GetValue<string>("UiDevServerUrl");
+        var uiDevServer = bffOptions.CurrentValue.UiDevServerUrl;
         
         context.AddRequestTransform(async reqTransformContext =>
         {
@@ -42,7 +35,7 @@ public class AuthTransform : ITransformProvider
             if (!string.IsNullOrWhiteSpace(uiDevServer) && 
                 reqTransformContext.DestinationPrefix.StartsWith(uiDevServer))
             {
-                _logger.LogDebug("AuthTransform: Ignoring request to dev server: {url}", 
+                logger.LogDebug("AuthTransform: Ignoring request to dev server: {url}", 
                     reqTransformContext.HttpContext.ContextForLogger());
                 return;
             }
@@ -54,12 +47,12 @@ public class AuthTransform : ITransformProvider
                 // Add the access token as bearer token to the proxied request
                 reqTransformContext.ProxyRequest.Headers.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-                _logger.LogDebug("AuthTransform: Access token added to request: {url}", 
+                logger.LogDebug("AuthTransform: Access token added to request: {url}", 
                     reqTransformContext.HttpContext.ContextForLogger());
                 return;
             }
 
-            _logger.LogDebug("AuthTransform: No access token found to add to proxied-request: {url}", 
+            logger.LogDebug("AuthTransform: No access token found to add to proxied-request: {url}", 
                 reqTransformContext.HttpContext.ContextForLogger());
         });
     }

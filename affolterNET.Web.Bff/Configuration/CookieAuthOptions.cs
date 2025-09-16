@@ -32,7 +32,7 @@ public class CookieAuthOptions: IConfigurableOptions<CookieAuthOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public CookieAuthOptions() : this(new AppSettings(false, AuthenticationMode.None))
+    public CookieAuthOptions() : this(new AppSettings())
     {
     }
     

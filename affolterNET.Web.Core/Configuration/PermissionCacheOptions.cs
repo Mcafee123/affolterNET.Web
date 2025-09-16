@@ -29,7 +29,7 @@ public class PermissionCacheOptions: IConfigurableOptions<PermissionCacheOptions
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public PermissionCacheOptions() : this(new AppSettings(false, AuthenticationMode.None))
+    public PermissionCacheOptions() : this(new AppSettings())
     {
     }
     

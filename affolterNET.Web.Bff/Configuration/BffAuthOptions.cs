@@ -20,7 +20,7 @@ public class BffAuthOptions: IConfigurableOptions<BffAuthOptions>
         throw new NotImplementedException();
     }
 
-    public BffAuthOptions(): this(new AppSettings(false, AuthenticationMode.None))
+    public BffAuthOptions(): this(new AppSettings())
     {
     }
 

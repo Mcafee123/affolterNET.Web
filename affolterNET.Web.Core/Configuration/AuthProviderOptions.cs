@@ -30,7 +30,7 @@ public class AuthProviderOptions: IConfigurableOptions<AuthProviderOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public AuthProviderOptions() : this(new AppSettings(false, AuthenticationMode.None))
+    public AuthProviderOptions() : this(new AppSettings())
     {
     }
 

@@ -36,7 +36,7 @@ public class ApiJwtBearerOptions: IConfigurableOptions<ApiJwtBearerOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public ApiJwtBearerOptions() : this(new AppSettings(false, AuthenticationMode.None))
+    public ApiJwtBearerOptions() : this(new AppSettings())
     {
     }
 

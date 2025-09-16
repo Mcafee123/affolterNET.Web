@@ -32,10 +32,13 @@ public static class OptionsExtensions
     /// <param name="configure"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static T Configure<T>(this T options, IServiceCollection services, Action<T>? configure)
+    public static T Configure<T>(this T options, IServiceCollection services, ConfigureActions configure)
         where T : class, IConfigurableOptions<T>
     {
-        configure?.Invoke(options);
+        foreach (var act in configure.GetActions<T>())
+        {
+            ((Action<T>)act).Invoke(options);
+        }
         services.Configure<T>(options.CopyTo);
         return options;
     }

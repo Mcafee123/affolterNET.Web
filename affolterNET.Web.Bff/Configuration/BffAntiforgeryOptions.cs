@@ -32,7 +32,7 @@ public class BffAntiforgeryOptions: IConfigurableOptions<BffAntiforgeryOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public BffAntiforgeryOptions() : this(new AppSettings(false, AuthenticationMode.None))
+    public BffAntiforgeryOptions() : this(new AppSettings())
     {
     }
     

@@ -36,12 +36,19 @@ public abstract class CoreAppOptions
     public SwaggerOptions Swagger { get; set; }
     public Action<SwaggerOptions>? ConfigureSwagger { get; set; }
 
-    protected void ConfigureCore(IServiceCollection services)
+    protected void ConfigureCore(IServiceCollection services, ConfigureActions? actions = null)
     {
-        AuthProvider.Configure(services, ConfigureAuthProvider);
-        Oidc.Configure(services, ConfigureOidc);
-        PermissionCache.Configure(services, ConfigurePermissionCache);
-        SecurityHeaders.Configure(services, ConfigureSecurityHeaders);
-        Swagger.Configure(services, ConfigureSwagger);
+        actions ??= new ConfigureActions(); // create if null
+        actions.Add(ConfigureAuthProvider);
+        actions.Add(ConfigureOidc);
+        actions.Add(ConfigurePermissionCache);
+        actions.Add(ConfigureSecurityHeaders);
+        actions.Add(ConfigureSwagger);
+        
+        AuthProvider.Configure(services, actions);
+        Oidc.Configure(services, actions);
+        PermissionCache.Configure(services, actions);
+        SecurityHeaders.Configure(services, actions);
+        Swagger.Configure(services, actions);
     }
 }

@@ -31,7 +31,7 @@ public class SwaggerOptions: IConfigurableOptions<SwaggerOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public SwaggerOptions() : this(new AppSettings(false, AuthenticationMode.None))
+    public SwaggerOptions() : this(new AppSettings())
     {
     }
 

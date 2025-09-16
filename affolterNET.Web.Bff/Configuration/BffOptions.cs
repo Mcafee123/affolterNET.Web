@@ -36,6 +36,7 @@ public class BffOptions: IConfigurableOptions<BffOptions>
         // options.EnableYarp = EnableYarp;
         options.ErrorPath = ErrorPath;
         options.FallbackPage = FallbackPage;
+        options.UiDevServerUrl = UiDevServerUrl;
         // options.ManagementBasePath = ManagementBasePath;
         // options.RequireLogoutSessionId = RequireLogoutSessionId;
         // options.RevokeRefreshTokenOnLogout = RevokeRefreshTokenOnLogout;
@@ -44,7 +45,7 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public BffOptions() : this(new AppSettings(false, AuthenticationMode.None))
+    public BffOptions() : this(new AppSettings())
     {
     }
     
@@ -158,4 +159,10 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// </summary>
     [Obsolete("not used at the moment")]
     public bool RevokeRefreshTokenOnLogout { get; set; }
+    
+    /// <summary>
+    /// UI development server URL for CSP configuration (e.g., "https://localhost:5173")
+    /// Used to automatically configure Content Security Policy for frontend dev servers
+    /// </summary>
+    public string UiDevServerUrl { get; set; }
 }

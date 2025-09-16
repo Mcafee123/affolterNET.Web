@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Hosting;
 using affolterNET.Web.Core.Configuration;
 
 namespace affolterNET.Web.Core.Middleware;
@@ -19,7 +18,6 @@ public class SecurityHeadersMiddleware(
     public async Task Invoke(HttpContext context)
     {
         var options = securityHeadersOptions.CurrentValue;
-        
         if (options.Enabled)
         {
             // Generate nonce for this request
@@ -43,48 +41,57 @@ public class SecurityHeadersMiddleware(
         }
 
         // X-Frame-Options: Prevent clickjacking
-        headers.Append("X-Frame-Options", "DENY");
+        if (!string.IsNullOrEmpty(options.XFrameOptions))
+        {
+            headers.Append("X-Frame-Options", options.XFrameOptions);
+        }
 
         // X-Content-Type-Options: Prevent MIME type sniffing
-        headers.Append("X-Content-Type-Options", "nosniff");
+        if (!string.IsNullOrEmpty(options.XContentTypeOptions))
+        {
+            headers.Append("X-Content-Type-Options", options.XContentTypeOptions);
+        }
 
         // Referrer-Policy: Control referrer information
-        headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+        if (!string.IsNullOrEmpty(options.ReferrerPolicy))
+        {
+            headers.Append("Referrer-Policy", options.ReferrerPolicy);
+        }
 
         // Cross-Origin-Opener-Policy: Isolate browsing context
-        headers.Append("Cross-Origin-Opener-Policy", "same-origin");
+        if (!string.IsNullOrEmpty(options.CrossOriginOpenerPolicy))
+        {
+            headers.Append("Cross-Origin-Opener-Policy", options.CrossOriginOpenerPolicy);
+        }
 
         // Cross-Origin-Resource-Policy: Control resource sharing
-        headers.Append("Cross-Origin-Resource-Policy", "same-origin");
+        if (!string.IsNullOrEmpty(options.CrossOriginResourcePolicy))
+        {
+            headers.Append("Cross-Origin-Resource-Policy", options.CrossOriginResourcePolicy);
+        }
 
         // Cross-Origin-Embedder-Policy: Enable SharedArrayBuffer
-        // ToDo: Check for dev-mode in options
-        // if (!options.isDev)
-        // {
-        //     headers.Append("Cross-Origin-Embedder-Policy", "require-corp");
-        // }
+        if (!string.IsNullOrEmpty(options.CrossOriginEmbedderPolicy))
+        {
+            headers.Append("Cross-Origin-Embedder-Policy", options.CrossOriginEmbedderPolicy);
+        }
 
         // Permissions-Policy: Control browser features
-        headers.Append("Permissions-Policy", 
-            "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), " +
-            "cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), " +
-            "execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), " +
-            "geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), " +
-            "midi=(), navigation-override=(), payment=(), picture-in-picture=(), " +
-            "publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), " +
-            "web-share=(), xr-spatial-tracking=()");
+        if (!string.IsNullOrEmpty(options.PermissionsPolicy))
+        {
+            headers.Append("Permissions-Policy", options.PermissionsPolicy);
+        }
 
         // Strict-Transport-Security: Enforce HTTPS
-        // ToDo: Check for dev-mode in options
-        // if (!options.isDev && context.Request.IsHttps)
-        // {
-        //     var hstsValue = $"max-age={options.HstsMaxAge}";
-        //     if (options.HstsIncludeSubDomains)
-        //         hstsValue += "; includeSubDomains";
-        //     if (options.HstsPreload)
-        //         hstsValue += "; preload";
-        //     headers.Append("Strict-Transport-Security", hstsValue);
-        // }
+        if (options.EnableHsts && context.Request.IsHttps)
+        {
+            var hstsValue = $"max-age={options.HstsMaxAge}";
+            if (options.HstsIncludeSubDomains)
+                hstsValue += "; includeSubDomains";
+            if (options.HstsPreload)
+                hstsValue += "; preload";
+            headers.Append("Strict-Transport-Security", hstsValue);
+        }
 
         // Content-Security-Policy: Comprehensive CSP
         var csp = BuildContentSecurityPolicy(options, nonce);
@@ -119,32 +126,18 @@ public class SecurityHeadersMiddleware(
 
         // Script sources
         var scriptSrc = "'self'";
-        // ToDo: Check for dev-mode in options
-        // if (options.isDev)
-        // {
-        //     scriptSrc += " 'unsafe-inline' 'unsafe-eval'";
-        // }
-        // else
-        // {
-        //     scriptSrc += $" 'nonce-{nonce}'";
-        // }
         if (options.AllowedScriptSources.Count > 0)
             scriptSrc += " " + string.Join(" ", options.AllowedScriptSources);
+        if (!string.IsNullOrEmpty(options.UiDevServerUrl))
+            scriptSrc += $" {options.UiDevServerUrl}";
         directives.Add($"script-src {scriptSrc}");
 
         // Style sources
         var styleSrc = "'self'";
-        // ToDo: Check for dev-mode in options
-        // if (options.isDev)
-        // {
-        //     styleSrc += " 'unsafe-inline'";
-        // }
-        // else
-        // {
-        //     styleSrc += $" 'nonce-{nonce}' 'unsafe-inline'";
-        // }
         if (options.AllowedStyleSources.Count > 0)
             styleSrc += " " + string.Join(" ", options.AllowedStyleSources);
+        if (!string.IsNullOrEmpty(options.UiDevServerUrl))
+            styleSrc += $" {options.UiDevServerUrl}";
         directives.Add($"style-src {styleSrc}");
 
         // Connect sources (for API calls, WebSocket, etc.)
@@ -153,6 +146,14 @@ public class SecurityHeadersMiddleware(
             connectSrc += " " + string.Join(" ", options.AllowedConnectSources);
         if (!string.IsNullOrEmpty(options.IdpHost))
             connectSrc += $" {options.IdpHost}";
+        if (!string.IsNullOrEmpty(options.UiDevServerUrl))
+        {
+            connectSrc += $" {options.UiDevServerUrl}";
+            // Also add WebSocket variant for Vite HMR
+            var wsUrl = options.UiDevServerUrl.Replace("http://", "ws://").Replace("https://", "wss://");
+            if (wsUrl != options.UiDevServerUrl)
+                connectSrc += $" {wsUrl}";
+        }
         directives.Add($"connect-src {connectSrc}");
 
         // Add custom directives

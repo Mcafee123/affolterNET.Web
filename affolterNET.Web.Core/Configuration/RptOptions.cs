@@ -30,7 +30,7 @@ public class RptOptions: IConfigurableOptions<RptOptions>
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
     /// </summary>
-    public RptOptions() : this(new AppSettings(false, AuthenticationMode.None))
+    public RptOptions() : this(new AppSettings())
     {
     }
     

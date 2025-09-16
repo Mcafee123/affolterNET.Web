@@ -44,14 +44,29 @@ public class BffAppOptions : CoreAppOptions
 
     public void Configure(IServiceCollection services)
     {
-        // Core configuration
-        ConfigureCore(services);
+        var actions = new ConfigureActions();
+        actions.Add(ConfigureAntiForgery);
+        actions.Add(ConfigureAuth);
+        actions.Add(ConfigureBff);
+        actions.Add(ConfigureCookieAuth);
+        actions.Add(ConfigureRpt);
         
-        AntiForgery.Configure(services, ConfigureAntiForgery);
-        BffAuth.Configure(services, ConfigureAuth);
-        Bff.Configure(services, ConfigureBff);
-        CookieAuth.Configure(services, ConfigureCookieAuth);
-        Rpt.Configure(services, ConfigureRpt);
+        AntiForgery.Configure(services, actions);
+        BffAuth.Configure(services, actions);
+        Bff.Configure(services, actions);
+        CookieAuth.Configure(services, actions);
+        Rpt.Configure(services, actions);
+        
+        // Move config values to base types
+        var baseActions = new ConfigureActions();
+        Action<SecurityHeadersOptions> configureDevUrl = sho =>
+        {
+            sho.UiDevServerUrl = Bff.UiDevServerUrl;
+        };
+        baseActions.Add(configureDevUrl);
+
+        // Core configuration
+        ConfigureCore(services, baseActions);
     }
 
     /// <summary>
