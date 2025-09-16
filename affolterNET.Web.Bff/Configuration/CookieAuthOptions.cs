@@ -42,7 +42,7 @@ public class CookieAuthOptions: IConfigurableOptions<CookieAuthOptions>
     /// <param name="settings">Application settings containing environment and authentication mode</param>
     private CookieAuthOptions(AppSettings settings)
     {
-        Name = "__Host-bff";
+        Name = settings.IsDev ? "bff-auth" : "__Host-bff";
         HttpOnly = true;
         Secure = !settings.IsDev; // Allow non-secure cookies in development
         SameSite = settings.IsDev ? "Lax" : "Strict"; // More relaxed in development
