@@ -128,6 +128,9 @@ jobs:
           git commit -m "chore: bump version to $NEW_VERSION"
           git push origin "$BRANCH_NAME"
           
+          # Ensure release label exists
+          gh label create "release" --description "Automated release version bump" --color "0366d6" --force || true
+          
           # Create pull request
           gh pr create \
             --title "Release v$NEW_VERSION" \
