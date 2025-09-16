@@ -25,20 +25,32 @@ public static class OptionsExtensions
     }
 
     /// <summary>
-    /// Apply manual configuration and register with DI
+    /// Apply manual configuration
     /// </summary>
     /// <param name="options"></param>
-    /// <param name="services"></param>
     /// <param name="configure"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static T Configure<T>(this T options, IServiceCollection services, ConfigureActions configure)
+    public static T RunActions<T>(this T options, ConfigureActions configure)
         where T : class, IConfigurableOptions<T>
     {
         foreach (var act in configure.GetActions<T>())
         {
             ((Action<T>)act).Invoke(options);
         }
+        return options;
+    }
+    
+    /// <summary>
+    /// Register with DI
+    /// </summary>
+    /// <param name="options"></param>
+    /// <param name="services"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static T ConfigureDi<T>(this T options, IServiceCollection services)
+        where T : class, IConfigurableOptions<T>
+    {
         services.Configure<T>(options.CopyTo);
         return options;
     }

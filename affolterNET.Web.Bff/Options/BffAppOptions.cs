@@ -15,7 +15,7 @@ namespace affolterNET.Web.Bff.Options;
 /// </summary>
 public class BffAppOptions : CoreAppOptions
 {
-    public BffAppOptions(AppSettings appSettings, IConfiguration config): base(appSettings, config)
+    public BffAppOptions(AppSettings appSettings, IConfiguration config) : base(appSettings, config)
     {
         IsDev = appSettings.IsDev;
         AntiForgery = config.CreateFromConfig<BffAntiforgeryOptions>(appSettings);
@@ -24,12 +24,12 @@ public class BffAppOptions : CoreAppOptions
         Rpt = config.CreateFromConfig<RptOptions>(appSettings);
         BffAuth = config.CreateFromConfig<BffAuthOptions>(appSettings);
     }
-    
+
     public bool IsDev { get; }
 
     public BffAuthOptions BffAuth { get; set; }
     public Action<BffAuthOptions>? ConfigureAuth { get; set; }
-    
+
     public BffAntiforgeryOptions AntiForgery { get; set; }
     public Action<BffAntiforgeryOptions>? ConfigureAntiForgery { get; set; }
 
@@ -50,23 +50,33 @@ public class BffAppOptions : CoreAppOptions
         actions.Add(ConfigureBff);
         actions.Add(ConfigureCookieAuth);
         actions.Add(ConfigureRpt);
-        
-        AntiForgery.Configure(services, actions);
-        BffAuth.Configure(services, actions);
-        Bff.Configure(services, actions);
-        CookieAuth.Configure(services, actions);
-        Rpt.Configure(services, actions);
-        
+
+        AntiForgery.RunActions(actions);
+        BffAuth.RunActions(actions);
+        Bff.RunActions(actions);
+        CookieAuth.RunActions(actions);
+        Rpt.RunActions(actions);
+        RunCoreActions(actions);
+
         // Move config values to base types
         var baseActions = new ConfigureActions();
         Action<SecurityHeadersOptions> configureDevUrl = sho =>
         {
             sho.UiDevServerUrl = Bff.UiDevServerUrl;
+            sho.IdpHost = AuthProvider.AuthorityBase;
         };
         baseActions.Add(configureDevUrl);
+        RunCoreActions(baseActions);
 
+        // configure DI
+        AntiForgery.ConfigureDi(services);
+        BffAuth.ConfigureDi(services);
+        Bff.ConfigureDi(services);
+        CookieAuth.ConfigureDi(services);
+        Rpt.ConfigureDi(services);
+        
         // Core configuration
-        ConfigureCore(services, baseActions);
+        ConfigureCoreDi(services);
     }
 
     /// <summary>
@@ -75,19 +85,22 @@ public class BffAppOptions : CoreAppOptions
     /// <returns>JSON representation of the configuration</returns>
     public string ToJson()
     {
-        var result = new Dictionary<string, object>();
-        Bff.AddToConfigurationDict(result);
-        CookieAuth.AddToConfigurationDict(result);
-        Oidc.AddToConfigurationDict(result);
-        AuthProvider.AddToConfigurationDict(result);
-        BffAuth.AddToConfigurationDict(result);
-        
+        var configDict = new Dictionary<string, object>();
+        Bff.AddToConfigurationDict(configDict);
+        CookieAuth.AddToConfigurationDict(configDict);
+        Oidc.AddToConfigurationDict(configDict);
+        AuthProvider.AddToConfigurationDict(configDict);
+        BffAuth.AddToConfigurationDict(configDict);
+
+        // add base properties to configuration dictionary
+        AddCoreToConfigurationDict(configDict);
+
         var options = new JsonSerializerOptions
         {
             WriteIndented = true,
             Converters = { new JsonStringEnumConverter() }
         };
 
-        return JsonSerializer.Serialize(result, options);
+        return JsonSerializer.Serialize(configDict, options);
     }
 }

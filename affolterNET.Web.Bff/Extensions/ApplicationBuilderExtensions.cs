@@ -54,6 +54,9 @@ public static class ApplicationBuilderExtensions
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json",
                     $"{bffOptions.Swagger.Title} {bffOptions.Swagger.Version}");
+                
+                // Note: No OAuth configuration needed - using BFF cookie authentication
+                // Users should log into the main application first, then Swagger will work automatically
             });
         }
 

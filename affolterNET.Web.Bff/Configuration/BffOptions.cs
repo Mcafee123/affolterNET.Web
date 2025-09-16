@@ -23,6 +23,7 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     {
         options.ApiRoutePrefixes = ApiRoutePrefixes;
         options.AuthMode = AuthMode;
+        options.BackendUrl = BackendUrl;
         // options.BackchannelLogoutAllUserSessions = BackchannelLogoutAllUserSessions;
         options.ConfigureCustomMiddleware = ConfigureCustomMiddleware;
         options.EnableApiNotFound = EnableApiNotFound;
@@ -58,17 +59,30 @@ public class BffOptions: IConfigurableOptions<BffOptions>
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     {
         AuthMode = settings.AuthMode;
+        BackendUrl = "https://localhost:7291";
+        ApiRoutePrefixes = ["/api", "/bff"];
+        EnableApiNotFound = true;
+        EnableAntiforgery = true;
+        EnableHttpsRedirection = true;
+        EnableNoUnauthorizedRedirect = true;
+        EnableRptTokens = true;
+        EnableStaticFiles = true;
+        EnableTokenRefresh = true;
+        ErrorPath = "/Error";
+        FallbackPage = "/_Host";
         // EnableSessionManagement = true;
         // ManagementBasePath = "/bff";
         // RequireLogoutSessionId = false;
         // RevokeRefreshTokenOnLogout = true;
         // BackchannelLogoutAllUserSessions = false;
     }
+
+    public string BackendUrl { get; set; }
     
     /// <summary>
     /// API route prefix for handling API-specific behavior
     /// </summary>
-    public string[] ApiRoutePrefixes { get; set; } = ["/api"];
+    public string[] ApiRoutePrefixes { get; set; }
 
     /// <summary>
     /// Authentication mode for the BFF (default: None)
@@ -89,27 +103,27 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// <summary>
     /// Whether to enable API 404 handling
     /// </summary>
-    public bool EnableApiNotFound { get; set; } = true;
+    public bool EnableApiNotFound { get; set; }
 
     /// <summary>
     /// Whether to enable unauthorized redirect prevention for API routes
     /// </summary>
-    public bool EnableAntiforgery { get; set; } = true;
+    public bool EnableAntiforgery { get; set; }
 
     /// <summary>
     /// Whether to enable HTTPS redirection (WARNING: dev mode not working when set to false)
     /// </summary>
-    public bool EnableHttpsRedirection { get; set; } = true;
+    public bool EnableHttpsRedirection { get; set; }
 
     /// <summary>
     /// Whether to enable unauthorized redirect prevention for API routes
     /// </summary>
-    public bool EnableNoUnauthorizedRedirect { get; set; } = true;
+    public bool EnableNoUnauthorizedRedirect { get; set; }
 
     /// <summary>
     /// Whether to enable RPT tokens for permission-based auth
     /// </summary>
-    public bool EnableRptTokens { get; set; } = true;
+    public bool EnableRptTokens { get; set; }
 
     /// <summary>
     /// Whether to enable session management
@@ -120,28 +134,28 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// <summary>
     /// Whether to enable static files
     /// </summary>
-    public bool EnableStaticFiles { get; set; } = true;
+    public bool EnableStaticFiles { get; set; }
 
     /// <summary>
     /// Whether to enable token refresh middleware
     /// </summary>
-    public bool EnableTokenRefresh { get; set; } = true;
+    public bool EnableTokenRefresh { get; set; }
 
     /// <summary>
     /// Whether to enable YARP reverse proxy
     /// </summary>
     [Obsolete("not used at the moment")]
-    public bool EnableYarp { get; set; } = true;
+    public bool EnableYarp { get; set; }
 
     /// <summary>
     /// Error page path
     /// </summary>
-    public string ErrorPath { get; set; } = "/Error";
+    public string ErrorPath { get; set; }
 
     /// <summary>
     /// Fallback page for SPA routing
     /// </summary>
-    public string? FallbackPage { get; set; } = "/_Host";
+    public string? FallbackPage { get; set; }
 
     /// <summary>
     /// Base path for BFF management endpoints
