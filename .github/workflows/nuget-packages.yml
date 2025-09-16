@@ -31,6 +31,10 @@ env:
   DOTNET_VERSION: '9.0.x'
   BUILD_CONFIGURATION: 'Release'
 
+permissions:
+  contents: write  # Required to push commits back to repository
+  actions: read    # Required to read workflow artifacts
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
