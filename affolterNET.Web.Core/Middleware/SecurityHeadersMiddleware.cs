@@ -105,8 +105,7 @@ public class SecurityHeadersMiddleware(
             "default-src 'self'",
             "object-src 'none'",
             "base-uri 'self'",
-            "frame-ancestors 'none'",
-            "block-all-mixed-content"
+            "frame-ancestors 'none'"
         };
 
         // Image sources

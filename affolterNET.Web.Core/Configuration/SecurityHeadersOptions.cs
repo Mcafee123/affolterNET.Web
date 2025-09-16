@@ -1,6 +1,5 @@
 using affolterNET.Web.Core.Models;
 using affolterNET.Web.Core.Options;
-using Microsoft.Extensions.Configuration;
 
 namespace affolterNET.Web.Core.Configuration;
 

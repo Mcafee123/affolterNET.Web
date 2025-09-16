@@ -57,6 +57,7 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     private BffOptions(AppSettings settings)
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     {
+        AuthMode = settings.AuthMode;
         // EnableSessionManagement = true;
         // ManagementBasePath = "/bff";
         // RequireLogoutSessionId = false;
@@ -72,7 +73,7 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// <summary>
     /// Authentication mode for the BFF (default: None)
     /// </summary>
-    public AuthenticationMode AuthMode { get; set; }
+    public AuthenticationMode AuthMode { get; private set; }
 
     /// <summary>
     /// Whether to logout all user sessions on backchannel logout
