@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authorization;
 using affolterNET.Web.Core.Configuration;
 using affolterNET.Web.Core.Authorization;
+using affolterNET.Web.Core.Options;
 using affolterNET.Web.Core.Services;
 using Microsoft.Extensions.Options;
 using NETCore.Keycloak.Client.HttpClients.Abstraction;
@@ -29,10 +30,10 @@ public static class ServiceCollectionExtensions
     /// Adds Keycloak client integration and configuration
     /// </summary>
     public static IServiceCollection AddKeycloakIntegration(this IServiceCollection services,
-        AuthProviderOptions authProviderConfig)
+        CoreAppOptions coreAppOptions)
     {
         // Register Keycloak client
-        services.AddSingleton<IKeycloakClient>(_ => new KeycloakClient(authProviderConfig.AuthorityBase));
+        services.AddSingleton<IKeycloakClient>(_ => new KeycloakClient(coreAppOptions.AuthProvider.AuthorityBase));
 
         return services;
     }
@@ -75,13 +76,13 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddSwagger(this IServiceCollection services, SwaggerOptions swaggerOptions)
+    public static IServiceCollection AddSwagger(this IServiceCollection services, CoreAppOptions coreOptions)
     {
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc(swaggerOptions.Version, new() { Title = swaggerOptions.Title, Version = swaggerOptions.Version });
+            c.SwaggerDoc(coreOptions.Swagger.Version, new() { Title = coreOptions.Swagger.Title, Version = coreOptions.Swagger.Version });
 
             // Add XML comments if available
             var xmlFilename = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";

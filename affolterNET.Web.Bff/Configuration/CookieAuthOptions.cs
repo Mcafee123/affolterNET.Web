@@ -1,3 +1,4 @@
+using affolterNET.Web.Core.Options;
 using Microsoft.Extensions.Configuration;
 
 namespace affolterNET.Web.Bff.Configuration;
@@ -5,12 +6,27 @@ namespace affolterNET.Web.Bff.Configuration;
 /// <summary>
 /// Cookie authentication configuration options for BFF scenarios
 /// </summary>
-public class CookieAuthOptions
+public class CookieAuthOptions: IConfigurableOptions<CookieAuthOptions>
 {
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public const string SectionName = "affolterNET.Web:Bff:Cookie";
+    public static string SectionName => "affolterNET.Web:Bff:Cookie";
+
+    public static CookieAuthOptions CreateDefaults(bool isDev)
+    {
+        return new CookieAuthOptions(isDev);
+    }
+
+    public void CopyTo(CookieAuthOptions options)
+    {
+        options.Name = Name;
+        options.HttpOnly = HttpOnly;
+        options.Secure = Secure;
+        options.SameSite = SameSite;
+        options.ExpireTimeSpan = ExpireTimeSpan;
+        options.SlidingExpiration = SlidingExpiration;
+    }
 
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
@@ -23,7 +39,7 @@ public class CookieAuthOptions
     /// Constructor with environment parameter for meaningful defaults
     /// </summary>
     /// <param name="isDev">Whether running in development mode</param>
-    public CookieAuthOptions(bool isDev)
+    private CookieAuthOptions(bool isDev)
     {
         Name = "__Host-bff";
         HttpOnly = true;
@@ -62,21 +78,4 @@ public class CookieAuthOptions
     /// Whether to use sliding expiration
     /// </summary>
     public bool SlidingExpiration { get; set; }
-
-    /// <summary>
-    /// Static factory method that handles config binding with environment awareness
-    /// </summary>
-    /// <param name="configuration">Configuration instance</param>
-    /// <param name="isDev">Whether running in development mode</param>
-    /// <param name="configure">Optional configurator action</param>
-    /// <returns>Configured CookieAuthOptions instance</returns>
-    public static CookieAuthOptions CreateFromConfiguration(IConfiguration configuration, 
-        bool isDev,
-        Action<CookieAuthOptions>? configure = null)
-    {
-        var options = new CookieAuthOptions(isDev);
-        configuration.GetSection(SectionName).Bind(options);
-        configure?.Invoke(options);
-        return options;
-    }
 }

@@ -1,5 +1,4 @@
 using affolterNET.Web.Core.Options;
-using Microsoft.Extensions.Configuration;
 
 namespace affolterNET.Web.Api.Configuration;
 
@@ -13,9 +12,9 @@ public class ApiJwtBearerOptions: IConfigurableOptions<ApiJwtBearerOptions>
     /// </summary>
     public static string SectionName => "affolterNET.Web:Api:JwtBearer";
 
-    public static Action<ApiJwtBearerOptions>? GetConfigureAction()
+    public static ApiJwtBearerOptions CreateDefaults(bool isDev)
     {
-        throw new NotImplementedException();
+        return new ApiJwtBearerOptions(isDev);
     }
 
     public void CopyTo(ApiJwtBearerOptions target)
@@ -44,7 +43,7 @@ public class ApiJwtBearerOptions: IConfigurableOptions<ApiJwtBearerOptions>
     /// Constructor with environment parameter for meaningful defaults
     /// </summary>
     /// <param name="isDev">Whether running in development mode</param>
-    public ApiJwtBearerOptions(bool isDev)
+    private ApiJwtBearerOptions(bool isDev)
     {
         ValidateIssuer = true;
         ValidateAudience = true;
@@ -113,21 +112,4 @@ public class ApiJwtBearerOptions: IConfigurableOptions<ApiJwtBearerOptions>
     /// Expected token type (default: "JWT")
     /// </summary>
     public string TokenType { get; set; }
-
-    /// <summary>
-    /// Static factory method that handles config binding with environment awareness
-    /// </summary>
-    /// <param name="configuration">Configuration instance</param>
-    /// <param name="isDev">Whether running in development mode</param>
-    /// <param name="configure">Optional configurator action</param>
-    /// <returns>Configured JwtBearerOptions instance</returns>
-    public static ApiJwtBearerOptions CreateFromConfiguration(IConfiguration configuration, 
-        bool isDev,
-        Action<ApiJwtBearerOptions>? configure = null)
-    {
-        var options = new ApiJwtBearerOptions(isDev);
-        configuration.GetSection(SectionName).Bind(options);
-        configure?.Invoke(options);
-        return options;
-    }
 }

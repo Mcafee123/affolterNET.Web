@@ -1,3 +1,4 @@
+using affolterNET.Web.Core.Options;
 using Microsoft.Extensions.Configuration;
 
 namespace affolterNET.Web.Core.Configuration;
@@ -5,12 +6,28 @@ namespace affolterNET.Web.Core.Configuration;
 /// <summary>
 /// Core OIDC protocol configuration options
 /// </summary>
-public class OidcOptions
+public class OidcOptions: IConfigurableOptions<OidcOptions>
 {
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public const string SectionName = "affolterNET.Web:Oidc";
+    public static string SectionName => "affolterNET.Web:Oidc";
+
+    public static OidcOptions CreateDefaults(bool isDev)
+    {
+        return new OidcOptions(isDev);
+    }
+
+    public void CopyTo(OidcOptions target)
+    {
+        target.ResponseType = ResponseType;
+        target.Scopes = Scopes;
+        target.SaveTokens = SaveTokens;
+        target.UsePkce = UsePkce;
+        target.ResponseModes = ResponseModes;
+        target.MapInboundClaims = MapInboundClaims;
+        target.GetClaimsFromUserInfoEndpoint = GetClaimsFromUserInfoEndpoint;
+    }
 
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
@@ -23,7 +40,7 @@ public class OidcOptions
     /// Constructor with environment parameter for meaningful defaults
     /// </summary>
     /// <param name="isDev">Whether running in development mode</param>
-    public OidcOptions(bool isDev)
+    private OidcOptions(bool isDev)
     {
         ResponseType = "code";
         Scopes = "openid profile email";
@@ -87,22 +104,5 @@ public class OidcOptions
     public string GetResponseType(string defaultValue = "code")
     {
         return string.IsNullOrEmpty(ResponseType) ? defaultValue : ResponseType;
-    }
-
-    /// <summary>
-    /// Static factory method that handles config binding with environment awareness
-    /// </summary>
-    /// <param name="configuration">Configuration instance</param>
-    /// <param name="isDev">Whether running in development mode</param>
-    /// <param name="configure">Optional configurator action</param>
-    /// <returns>Configured OidcOptions instance</returns>
-    public static OidcOptions CreateFromConfiguration(IConfiguration configuration, 
-        bool isDev,
-        Action<OidcOptions>? configure = null)
-    {
-        var options = new OidcOptions(isDev);
-        configuration.GetSection(SectionName).Bind(options);
-        configure?.Invoke(options);
-        return options;
     }
 }

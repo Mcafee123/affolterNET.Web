@@ -1,4 +1,5 @@
 using affolterNET.Web.Core.Options;
+using Microsoft.AspNetCore.Builder;
 
 namespace affolterNET.Web.Core.Configuration;
 
@@ -14,9 +15,9 @@ public class SwaggerOptions: IConfigurableOptions<SwaggerOptions>
         throw new NotImplementedException();
     }
 
-    public static Action<SwaggerOptions>? GetConfigureAction()
+    public static SwaggerOptions CreateDefaults(bool isDev)
     {
-        throw new NotImplementedException();
+        return new SwaggerOptions(isDev);
     }
 
     public void CopyTo(SwaggerOptions target)
@@ -36,7 +37,7 @@ public class SwaggerOptions: IConfigurableOptions<SwaggerOptions>
     /// Constructor with environment parameter for meaningful defaults
     /// </summary>
     /// <param name="isDev">Whether running in development mode</param>
-    public SwaggerOptions(bool isDev)
+    private SwaggerOptions(bool isDev)
     {
         Title = "API Documentation";
         Version = "v1";
@@ -44,4 +45,9 @@ public class SwaggerOptions: IConfigurableOptions<SwaggerOptions>
 
     public string Title { get; set; }
     public string Version { get; set; }
+    
+    /// <summary>
+    /// Configuration action for API documentation (Swagger/OpenAPI) - called after security but before routing
+    /// </summary>
+    public Action<IApplicationBuilder>? ConfigureApiDocumentation { get; set; }
 }

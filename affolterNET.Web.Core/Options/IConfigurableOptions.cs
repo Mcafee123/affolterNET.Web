@@ -1,8 +1,8 @@
 namespace affolterNET.Web.Core.Options;
 
-public interface IConfigurableOptions<in T> where T : class
+public interface IConfigurableOptions<T> where T : class
 {
     static abstract string SectionName { get; }
-    static abstract Action<T>? GetConfigureAction();
-    void CopyTo(T target);
+    static abstract T CreateDefaults(bool isDev);
+    abstract void CopyTo(T options);
 }

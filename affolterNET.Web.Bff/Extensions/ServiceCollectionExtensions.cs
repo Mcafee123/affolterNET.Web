@@ -26,21 +26,21 @@ public static class ServiceCollectionExtensions
             .CreateLogger("affolterNET.Auth.Bff");
 
         // 1. Create BffAppOptions instance with constructor defaults
-        var bffOptions = new BffAppOptions(isDev);
+        var bffOptions = new BffAppOptions(isDev, configuration);
         configureOptions?.Invoke(bffOptions);
         bffOptions.Configure(services);
         
         // Add core authentication services
         services.AddCoreServices()
-            .AddKeycloakIntegration(bffOptions.AuthProvider)
+            .AddKeycloakIntegration(bffOptions)
             .AddRptServices()
             .AddAuthorizationPolicies();
         
         // Swagger
-        services.AddSwagger(bffOptions.Swagger);
+        services.AddSwagger(bffOptions);
         
         // Add BFF-specific authentication setup
-        services.AddBffAuthenticationInternal(bffOptions.BffAuth);
+        services.AddBffAuthenticationInternal(bffOptions);
         
         // Add BFF supporting services
         services.AddAntiforgeryServicesInternal(bffOptions.AntiForgery);
@@ -52,7 +52,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds BFF authentication configuration (cookies, OIDC)
     /// </summary>
-    private static IServiceCollection AddBffAuthenticationInternal(this IServiceCollection services, BffAuthOptions bffAuthOptions)
+    private static IServiceCollection AddBffAuthenticationInternal(this IServiceCollection services, BffAppOptions bffOptions)
     {
         // Add authentication
         services.AddAuthentication(options =>
@@ -63,41 +63,41 @@ public static class ServiceCollectionExtensions
             })
             .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
             {
-                options.Cookie.Name = bffAuthOptions.Cookie.Name;
-                options.Cookie.HttpOnly = bffAuthOptions.Cookie.HttpOnly;
-                options.Cookie.SecurePolicy = bffAuthOptions.Cookie.Secure
+                options.Cookie.Name = bffOptions.CookieAuth.Name;
+                options.Cookie.HttpOnly = bffOptions.CookieAuth.HttpOnly;
+                options.Cookie.SecurePolicy = bffOptions.CookieAuth.Secure
                     ? Microsoft.AspNetCore.Http.CookieSecurePolicy.Always
                     : Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
-                options.Cookie.SameSite = bffAuthOptions.Cookie.SameSite switch
+                options.Cookie.SameSite = bffOptions.CookieAuth.SameSite switch
                 {
                     "Strict" => Microsoft.AspNetCore.Http.SameSiteMode.Strict,
                     "Lax" => Microsoft.AspNetCore.Http.SameSiteMode.Lax,
                     "None" => Microsoft.AspNetCore.Http.SameSiteMode.None,
                     _ => Microsoft.AspNetCore.Http.SameSiteMode.Strict
                 };
-                options.ExpireTimeSpan = bffAuthOptions.Cookie.ExpireTimeSpan;
-                options.SlidingExpiration = bffAuthOptions.Cookie.SlidingExpiration;
+                options.ExpireTimeSpan = bffOptions.CookieAuth.ExpireTimeSpan;
+                options.SlidingExpiration = bffOptions.CookieAuth.SlidingExpiration;
                 options.LoginPath = "/bff/login";
                 options.LogoutPath = "/bff/logout";
                 options.AccessDeniedPath = "/bff/access-denied";
             })
             .AddOpenIdConnect("oidc", options =>
             {
-                options.Authority = bffAuthOptions.Authority;
-                options.ClientId = bffAuthOptions.ClientId;
-                options.ClientSecret = bffAuthOptions.ClientSecret;
-                options.ResponseType = bffAuthOptions.Oidc.ResponseType;
-                options.SaveTokens = bffAuthOptions.Oidc.SaveTokens;
-                options.UsePkce = bffAuthOptions.Oidc.UsePkce;
+                options.Authority = bffOptions.AuthProvider.Authority;
+                options.ClientId = bffOptions.AuthProvider.ClientId;
+                options.ClientSecret = bffOptions.AuthProvider.ClientSecret;
+                options.ResponseType = bffOptions.Oidc.ResponseType;
+                options.SaveTokens = bffOptions.Oidc.SaveTokens;
+                options.UsePkce = bffOptions.Oidc.UsePkce;
 
                 options.Scope.Clear();
-                foreach (var scope in bffAuthOptions.GetScopes().Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                foreach (var scope in bffOptions.Oidc.GetScopes().Split(' ', StringSplitOptions.RemoveEmptyEntries))
                 {
                     options.Scope.Add(scope);
                 }
 
-                options.CallbackPath = bffAuthOptions.RedirectUri;
-                options.SignedOutCallbackPath = bffAuthOptions.PostLogoutRedirectUri;
+                options.CallbackPath = bffOptions.Bff.RedirectUri;
+                options.SignedOutCallbackPath = bffOptions.Bff.PostLogoutRedirectUri;
 
                 // Map claims
                 options.MapInboundClaims = false;

@@ -1,3 +1,4 @@
+using affolterNET.Web.Core.Options;
 using Microsoft.Extensions.Configuration;
 
 namespace affolterNET.Web.Core.Configuration;
@@ -5,12 +6,33 @@ namespace affolterNET.Web.Core.Configuration;
 /// <summary>
 /// Security headers configuration options
 /// </summary>
-public class SecurityHeadersOptions
+public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions>
 {
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public const string SectionName = "affolterNET.Web:SecurityHeaders";
+    public static string SectionName => "affolterNET.Web:SecurityHeaders";
+
+    public static SecurityHeadersOptions CreateDefaults(bool isDev)
+    {
+        return new SecurityHeadersOptions(isDev);
+    }
+
+    public void CopyTo(SecurityHeadersOptions target)
+    {
+        target.Enabled = Enabled;
+        target.isDev = isDev;
+        target.IdpHost = IdpHost;
+        target.AllowedConnectSources = new List<string>(AllowedConnectSources);
+        target.AllowedScriptSources = new List<string>(AllowedScriptSources);
+        target.AllowedStyleSources = new List<string>(AllowedStyleSources);
+        target.AllowedImageSources = new List<string>(AllowedImageSources);
+        target.RemoveServerHeader = RemoveServerHeader;
+        target.HstsMaxAge = HstsMaxAge;
+        target.HstsIncludeSubDomains = HstsIncludeSubDomains;
+        target.HstsPreload = HstsPreload;
+        target.CustomCspDirectives = new Dictionary<string, string>(CustomCspDirectives);
+    }
 
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
@@ -23,7 +45,7 @@ public class SecurityHeadersOptions
     /// Constructor with environment parameter for meaningful defaults
     /// </summary>
     /// <param name="isDev">Whether running in development mode</param>
-    public SecurityHeadersOptions(bool isDev)
+    private SecurityHeadersOptions(bool isDev)
     {
         Enabled = true;
         IdpHost = string.Empty;
@@ -107,21 +129,4 @@ public class SecurityHeadersOptions
     /// Custom CSP directives as key-value pairs
     /// </summary>
     public Dictionary<string, string> CustomCspDirectives { get; set; }
-
-    /// <summary>
-    /// Static factory method that handles config binding with environment awareness
-    /// </summary>
-    /// <param name="configuration">Configuration instance</param>
-    /// <param name="isDev">Whether running in development mode</param>
-    /// <param name="configure">Optional configurator action</param>
-    /// <returns>Configured SecurityHeadersOptions instance</returns>
-    public static SecurityHeadersOptions CreateFromConfiguration(IConfiguration configuration, 
-        bool isDev,
-        Action<SecurityHeadersOptions>? configure = null)
-    {
-        var options = new SecurityHeadersOptions(isDev);
-        configuration.GetSection(SectionName).Bind(options);
-        configure?.Invoke(options);
-        return options;
-    }
 }

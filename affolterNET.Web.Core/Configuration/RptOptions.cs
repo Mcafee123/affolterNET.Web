@@ -1,3 +1,4 @@
+using affolterNET.Web.Core.Options;
 using Microsoft.Extensions.Configuration;
 
 namespace affolterNET.Web.Core.Configuration;
@@ -5,12 +6,25 @@ namespace affolterNET.Web.Core.Configuration;
 /// <summary>
 /// Request Party Token (RPT) configuration options
 /// </summary>
-public class RptOptions
+public class RptOptions: IConfigurableOptions<RptOptions>
 {
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public const string SectionName = "affolterNET.Web:Bff:Rpt";
+    public static string SectionName => "affolterNET.Web:Bff:Rpt";
+
+    public static RptOptions CreateDefaults(bool isDev)
+    {
+        return new RptOptions(isDev);
+    }
+
+    public void CopyTo(RptOptions options)
+    {
+        options.Endpoint = Endpoint;
+        options.Audience = Audience;
+        options.EnableCaching = EnableCaching;
+        options.CacheExpiration = CacheExpiration;
+    }
 
     /// <summary>
     /// Parameterless constructor for options pattern compatibility
@@ -23,7 +37,7 @@ public class RptOptions
     /// Constructor with environment parameter for meaningful defaults
     /// </summary>
     /// <param name="isDev">Whether running in development mode</param>
-    public RptOptions(bool isDev)
+    private RptOptions(bool isDev)
     {
         Endpoint = "/realms/{realm}/protocol/openid_connect/token";
         Audience = string.Empty;
@@ -50,21 +64,4 @@ public class RptOptions
     /// RPT token cache expiration time
     /// </summary>
     public TimeSpan CacheExpiration { get; set; }
-
-    /// <summary>
-    /// Static factory method that handles config binding with environment awareness
-    /// </summary>
-    /// <param name="configuration">Configuration instance</param>
-    /// <param name="isDev">Whether running in development mode</param>
-    /// <param name="configure">Optional configurator action</param>
-    /// <returns>Configured RptOptions instance</returns>
-    public static RptOptions CreateFromConfiguration(IConfiguration configuration, 
-        bool isDev,
-        Action<RptOptions>? configure = null)
-    {
-        var options = new RptOptions(isDev);
-        configuration.GetSection(SectionName).Bind(options);
-        configure?.Invoke(options);
-        return options;
-    }
 }

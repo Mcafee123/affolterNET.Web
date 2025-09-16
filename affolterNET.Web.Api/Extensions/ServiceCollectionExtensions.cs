@@ -28,18 +28,18 @@ public static class ServiceCollectionExtensions
             .CreateLogger("affolterNET.Auth.Bff");
 
         // 1. Create BffAppOptions instance with constructor defaults
-        var apiOptions = new ApiAppOptions(isDev);
+        var apiOptions = new ApiAppOptions(isDev, configuration);
         configureOptions?.Invoke(apiOptions);
         apiOptions.Configure(services);
 
         // Add core authentication services
         services.AddCoreServices()
-            .AddKeycloakIntegration(apiOptions.AuthProvider)
+            .AddKeycloakIntegration(apiOptions)
             .AddRptServices()
             .AddAuthorizationPolicies();
 
         // Add API-specific authentication setup
-        services.AddApiAuthenticationInternal(apiOptions.AuthProvider, apiOptions.ApiJwtBearer);
+        services.AddApiAuthenticationInternal(apiOptions);
 
         // Add security headers
         // services.AddSecurityHeaders(apiOptions.SecurityHeaders);
@@ -51,27 +51,27 @@ public static class ServiceCollectionExtensions
     /// Adds JWT Bearer authentication and API-specific services
     /// </summary>
     private static IServiceCollection AddApiAuthenticationInternal(this IServiceCollection services,
-        AuthProviderOptions authProviderOptions, ApiJwtBearerOptions jwtBearerOptions)
+        ApiAppOptions apiOptions)
     {
         // Add JWT Bearer authentication
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.Authority = authProviderOptions.Authority;
-                options.Audience = authProviderOptions.Audience;
-                options.RequireHttpsMetadata = jwtBearerOptions.RequireHttpsMetadata;
-                options.SaveToken = jwtBearerOptions.SaveToken;
+                // options.Authority = authProviderOptions.Authority;
+                // options.Audience = authProviderOptions.Audience;
+                options.RequireHttpsMetadata = apiOptions.ApiJwtBearer.RequireHttpsMetadata;
+                options.SaveToken = apiOptions.ApiJwtBearer.SaveToken;
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = jwtBearerOptions.ValidateIssuer,
-                    ValidateAudience = jwtBearerOptions.ValidateAudience,
-                    ValidateLifetime = jwtBearerOptions.ValidateLifetime,
-                    ValidateIssuerSigningKey = jwtBearerOptions.ValidateIssuerSigningKey,
-                    ValidIssuers = jwtBearerOptions.ValidIssuers.Length > 0 ? jwtBearerOptions.ValidIssuers : null,
+                    ValidateIssuer = apiOptions.ApiJwtBearer.ValidateIssuer,
+                    ValidateAudience = apiOptions.ApiJwtBearer.ValidateAudience,
+                    ValidateLifetime = apiOptions.ApiJwtBearer.ValidateLifetime,
+                    ValidateIssuerSigningKey = apiOptions.ApiJwtBearer.ValidateIssuerSigningKey,
+                    ValidIssuers = apiOptions.ApiJwtBearer.ValidIssuers.Length > 0 ? apiOptions.ApiJwtBearer.ValidIssuers : null,
                     ValidAudiences =
-                        jwtBearerOptions.ValidAudiences.Length > 0 ? jwtBearerOptions.ValidAudiences : null,
-                    ClockSkew = jwtBearerOptions.ClockSkew
+                        apiOptions.ApiJwtBearer.ValidAudiences.Length > 0 ? apiOptions.ApiJwtBearer.ValidAudiences : null,
+                    ClockSkew = apiOptions.ApiJwtBearer.ClockSkew
                 };
             });
 

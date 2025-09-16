@@ -25,7 +25,7 @@ public static class ApplicationBuilderExtensions
         }
         else
         {
-            app.UseExceptionHandler(bffOptions.ErrorPath);
+            app.UseExceptionHandler(bffOptions.Bff.ErrorPath);
         }
 
         // 2. SECURITY HEADERS (Always second - protects ALL responses)
@@ -35,67 +35,67 @@ public static class ApplicationBuilderExtensions
         }
 
         // 3. HTTPS REDIRECTION
-        if (bffOptions.EnableHttpsRedirection)
+        if (bffOptions.Bff.EnableHttpsRedirection)
         {
             app.UseHttpsRedirection();
         }
 
         // 4. STATIC FILES
-        if (bffOptions.EnableStaticFiles)
+        if (bffOptions.Bff.EnableStaticFiles)
         {
             app.UseStaticFiles();
         }
 
         // 5. DEVELOPMENT TOOLS
         // 5. API DOCUMENTATION (Swagger/OpenAPI) - After security, before routing
-        bffOptions.ConfigureApiDocumentation?.Invoke(app);
+        bffOptions.Swagger.ConfigureApiDocumentation?.Invoke(app);
 
         // 6. ROUTING (Required before auth)
         app.UseRouting();
 
         // 7. ANTIFORGERY (Always enabled for CSRF protection, regardless of auth mode)
-        if (bffOptions.EnableAntiforgery)
+        if (bffOptions.Bff.EnableAntiforgery)
         {
             app.UseAntiforgery();
         }
 
         // 8. AUTHENTICATION & AUTHORIZATION PIPELINE
-        if (bffOptions.AuthorizationMode != AuthorizationMode.None)
+        if (bffOptions.Bff.AuthMode != AuthorizationMode.None)
         {
             app.UseAuthentication();
 
-            if (bffOptions.EnableTokenRefresh)
+            if (bffOptions.Bff.EnableTokenRefresh)
             {
                 app.UseMiddleware<RefreshTokenMiddleware>();
             }
 
-            if (bffOptions is { AuthorizationMode: AuthorizationMode.PermissionBased, EnableRptTokens: true })
+            if (bffOptions.Bff is { AuthMode: AuthorizationMode.PermissionBased, EnableRptTokens: true })
             {
                 app.UseMiddleware<RptMiddleware>();
             }
 
             // Custom authorization handling for API routes
-            if (bffOptions.EnableNoUnauthorizedRedirect)
+            if (bffOptions.Bff.EnableNoUnauthorizedRedirect)
             {
-                app.UseMiddleware<NoUnauthorizedRedirectMiddleware>((object)bffOptions.ApiRoutePrefixes);
+                app.UseMiddleware<NoUnauthorizedRedirectMiddleware>((object)bffOptions.Bff.ApiRoutePrefixes);
             }
 
             app.UseAuthorization();
         }
 
         // 9. ANTIFORGERY TOKEN MIDDLEWARE (After authorization)
-        if (bffOptions.EnableAntiforgery)
+        if (bffOptions.Bff.EnableAntiforgery)
         {
             app.UseMiddleware<AntiforgeryTokenMiddleware>();
         }
 
         // 10. CUSTOM MIDDLEWARE (After auth, before endpoint mapping)
-        bffOptions.ConfigureCustomMiddleware?.Invoke(app);
+        bffOptions.Bff.ConfigureCustomMiddleware?.Invoke(app);
 
         // 11. API 404 handling (Before endpoint mapping)
-        if (bffOptions.EnableApiNotFound)
+        if (bffOptions.Bff.EnableApiNotFound)
         {
-            app.UseMiddleware<ApiNotFoundMiddleware>((object)bffOptions.ApiRoutePrefixes);
+            app.UseMiddleware<ApiNotFoundMiddleware>((object)bffOptions.Bff.ApiRoutePrefixes);
         }
 
         // 12. ENDPOINT MAPPING
@@ -108,9 +108,9 @@ public static class ApplicationBuilderExtensions
             endpoints.MapReverseProxy();
             
             // Fallback to main page
-            if (!string.IsNullOrEmpty(bffOptions.FallbackPage))
+            if (!string.IsNullOrEmpty(bffOptions.Bff.FallbackPage))
             {
-                endpoints.MapFallbackToPage(bffOptions.FallbackPage);
+                endpoints.MapFallbackToPage(bffOptions.Bff.FallbackPage);
             }
         });
 

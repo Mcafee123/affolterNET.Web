@@ -13,9 +13,9 @@ public class BffAntiforgeryOptions: IConfigurableOptions<BffAntiforgeryOptions>
     /// </summary>
     public static string SectionName => "affolterNET.Web:Bff:Antiforgery";
 
-    public static Action<BffAntiforgeryOptions>? GetConfigureAction()
+    public static BffAntiforgeryOptions CreateDefaults(bool isDev)
     {
-        throw new NotImplementedException();
+        return new BffAntiforgeryOptions(isDev);
     }
 
     public void CopyTo(BffAntiforgeryOptions target)
@@ -39,7 +39,7 @@ public class BffAntiforgeryOptions: IConfigurableOptions<BffAntiforgeryOptions>
     /// Constructor with environment parameter for meaningful defaults
     /// </summary>
     /// <param name="isDev">Whether running in development mode</param>
-    public BffAntiforgeryOptions(bool isDev)
+    private BffAntiforgeryOptions(bool isDev)
     {
         ServerCookieName = "__Host-X-XSRF-TOKEN";
         ClientCookieName = "X-XSRF-TOKEN";
@@ -78,21 +78,4 @@ public class BffAntiforgeryOptions: IConfigurableOptions<BffAntiforgeryOptions>
     /// Whether to require secure cookies (HTTPS)
     /// </summary>
     public bool RequireSecure { get; set; }
-
-    /// <summary>
-    /// Static factory method that handles config binding with environment awareness
-    /// </summary>
-    /// <param name="configuration">Configuration instance</param>
-    /// <param name="isDev">Whether running in development mode</param>
-    /// <param name="configure">Optional configurator action</param>
-    /// <returns>Configured AntiforgeryOptions instance</returns>
-    public static BffAntiforgeryOptions CreateFromConfiguration(IConfiguration configuration, 
-        bool isDev,
-        Action<BffAntiforgeryOptions>? configure = null)
-    {
-        var options = new BffAntiforgeryOptions(isDev);
-        configuration.GetSection(SectionName).Bind(options);
-        configure?.Invoke(options);
-        return options;
-    }
 }
