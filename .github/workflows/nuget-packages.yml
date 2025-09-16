@@ -172,6 +172,12 @@ jobs:
         # Update version in all project files
         find . -name "*.csproj" -exec sed -i "s/<Version>.*<\/Version>/<Version>$VERSION<\/Version>/g" {} \;
 
+    - name: Build projects
+      run: |
+        dotnet build affolterNET.Web.Core/affolterNET.Web.Core.csproj --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+        dotnet build affolterNET.Web.Api/affolterNET.Web.Api.csproj --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+        dotnet build affolterNET.Web.Bff/affolterNET.Web.Bff.csproj --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+
     - name: Pack NuGet packages
       run: |
         echo "Packing packages with version ${{ needs.build-and-test.outputs.version }}"
@@ -180,6 +186,7 @@ jobs:
         dotnet pack affolterNET.Web.Core/affolterNET.Web.Core.csproj \
           --configuration ${{ env.BUILD_CONFIGURATION }} \
           --no-restore \
+          --no-build \
           --output ./packages \
           --include-symbols \
           --include-source \
@@ -189,6 +196,7 @@ jobs:
         dotnet pack affolterNET.Web.Api/affolterNET.Web.Api.csproj \
           --configuration ${{ env.BUILD_CONFIGURATION }} \
           --no-restore \
+          --no-build \
           --output ./packages \
           --include-symbols \
           --include-source \
@@ -198,6 +206,7 @@ jobs:
         dotnet pack affolterNET.Web.Bff/affolterNET.Web.Bff.csproj \
           --configuration ${{ env.BUILD_CONFIGURATION }} \
           --no-restore \
+          --no-build \
           --output ./packages \
           --include-symbols \
           --include-source \
