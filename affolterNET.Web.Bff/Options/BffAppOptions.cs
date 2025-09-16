@@ -22,9 +22,13 @@ public class BffAppOptions : CoreAppOptions
         Bff = config.CreateFromConfig<BffOptions>(appSettings);
         CookieAuth = config.CreateFromConfig<CookieAuthOptions>(appSettings);
         Rpt = config.CreateFromConfig<RptOptions>(appSettings);
+        BffAuth = config.CreateFromConfig<BffAuthOptions>(appSettings);
     }
-
+    
     public bool IsDev { get; }
+
+    public BffAuthOptions BffAuth { get; set; }
+    public Action<BffAuthOptions>? ConfigureAuth { get; set; }
     
     public BffAntiforgeryOptions AntiForgery { get; set; }
     public Action<BffAntiforgeryOptions>? ConfigureAntiForgery { get; set; }
@@ -44,6 +48,7 @@ public class BffAppOptions : CoreAppOptions
         ConfigureCore(services);
         
         AntiForgery.Configure(services, ConfigureAntiForgery);
+        BffAuth.Configure(services, ConfigureAuth);
         Bff.Configure(services, ConfigureBff);
         CookieAuth.Configure(services, ConfigureCookieAuth);
         Rpt.Configure(services, ConfigureRpt);
@@ -60,6 +65,7 @@ public class BffAppOptions : CoreAppOptions
         CookieAuth.AddToConfigurationDict(result);
         Oidc.AddToConfigurationDict(result);
         AuthProvider.AddToConfigurationDict(result);
+        BffAuth.AddToConfigurationDict(result);
         
         var options = new JsonSerializerOptions
         {

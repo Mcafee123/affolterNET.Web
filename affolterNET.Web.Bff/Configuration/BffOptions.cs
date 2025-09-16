@@ -12,7 +12,7 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public static string SectionName => "affolterNET.Web:Bff:Options";
+    public static string SectionName => "affolterNET.Web:BffOptions";
 
     public static BffOptions CreateDefaults(AppSettings settings)
     {
@@ -24,7 +24,6 @@ public class BffOptions: IConfigurableOptions<BffOptions>
         options.ApiRoutePrefixes = ApiRoutePrefixes;
         options.AuthMode = AuthMode;
         // options.BackchannelLogoutAllUserSessions = BackchannelLogoutAllUserSessions;
-        options.CallbackPath = CallbackPath;
         options.ConfigureCustomMiddleware = ConfigureCustomMiddleware;
         options.EnableApiNotFound = EnableApiNotFound;
         options.EnableAntiforgery = EnableAntiforgery;
@@ -38,11 +37,8 @@ public class BffOptions: IConfigurableOptions<BffOptions>
         options.ErrorPath = ErrorPath;
         options.FallbackPage = FallbackPage;
         // options.ManagementBasePath = ManagementBasePath;
-        options.PostLogoutRedirectUri = PostLogoutRedirectUri;
-        options.RedirectUri = RedirectUri;
         // options.RequireLogoutSessionId = RequireLogoutSessionId;
         // options.RevokeRefreshTokenOnLogout = RevokeRefreshTokenOnLogout;
-        options.SignoutCallBack = SignoutCallBack;
     }
 
     /// <summary>
@@ -60,11 +56,6 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     private BffOptions(AppSettings settings)
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     {
-        CallbackPath = "/signin-oidc";
-        SignoutCallBack = "/signout-callback-oidc";
-        PostLogoutRedirectUri = "/signout-callback-oidc";
-        RedirectUri = string.Empty;
-        
         // EnableSessionManagement = true;
         // ManagementBasePath = "/bff";
         // RequireLogoutSessionId = false;
@@ -87,11 +78,6 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// </summary>
     [Obsolete("not used at the moment")]
     public bool BackchannelLogoutAllUserSessions { get; set; }
-
-    /// <summary>
-    /// OIDC callback path (default: "/signin-oidc")
-    /// </summary>
-    public string CallbackPath { get; set; }
 
     /// <summary>
     /// Configuration action for custom middleware - called before routing but after authentication
@@ -160,17 +146,7 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// </summary>
     [Obsolete("not used at the moment")]
     public string ManagementBasePath { get; set; }
-
-    /// <summary>
-    /// Post-logout redirect URI for OIDC flows
-    /// </summary>
-    public string PostLogoutRedirectUri { get; set; }
-
-    /// <summary>
-    /// Redirect URI for OIDC flows
-    /// </summary>
-    public string RedirectUri { get; set; }
-
+    
     /// <summary>
     /// Whether to require logout session ID
     /// </summary>
@@ -182,9 +158,4 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// </summary>
     [Obsolete("not used at the moment")]
     public bool RevokeRefreshTokenOnLogout { get; set; }
-
-    /// <summary>
-    /// OIDC signout callback path (default: "/signout-callback-oidc")
-    /// </summary>
-    public string SignoutCallBack { get; set; }
 }

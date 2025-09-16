@@ -97,8 +97,8 @@ public static class ServiceCollectionExtensions
                     options.Scope.Add(scope);
                 }
 
-                options.CallbackPath = bffOptions.Bff.RedirectUri;
-                options.SignedOutCallbackPath = bffOptions.Bff.PostLogoutRedirectUri;
+                options.CallbackPath = bffOptions.BffAuth.RedirectUri;
+                options.SignedOutCallbackPath = bffOptions.BffAuth.PostLogoutRedirectUri;
 
                 // Map claims
                 options.MapInboundClaims = false;

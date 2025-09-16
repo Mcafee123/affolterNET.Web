@@ -11,7 +11,7 @@ public class AuthProviderOptions: IConfigurableOptions<AuthProviderOptions>
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public static string SectionName => "affolterNET.Web:Provider";
+    public static string SectionName => "affolterNET.Web:Auth:Provider";
 
     public static AuthProviderOptions CreateDefaults(AppSettings settings)
     {
