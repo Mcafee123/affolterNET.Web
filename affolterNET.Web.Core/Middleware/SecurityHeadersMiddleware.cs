@@ -110,7 +110,11 @@ public class SecurityHeadersMiddleware(
         };
 
         // Image sources
-        var imgSrc = "'self' data:";
+        var imgSrc = "'self'";
+        if (options.AllowDataImages)
+            imgSrc += " data:";
+        if (options.AllowBlobImages)
+            imgSrc += " blob:";
         if (options.AllowedImageSources.Count > 0)
             imgSrc += " " + string.Join(" ", options.AllowedImageSources);
         directives.Add($"img-src {imgSrc}");
@@ -137,6 +141,8 @@ public class SecurityHeadersMiddleware(
 
         // Style sources
         var styleSrc = "'self'";
+        if (options.AllowInlineStyles)
+            styleSrc += " 'unsafe-inline'";
         if (options.AllowedStyleSources.Count > 0)
             styleSrc += " " + string.Join(" ", options.AllowedStyleSources);
         if (!string.IsNullOrEmpty(options.UiDevServerUrl))

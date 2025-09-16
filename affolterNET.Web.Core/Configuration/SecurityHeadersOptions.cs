@@ -26,7 +26,10 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
         target.AllowedConnectSources = new List<string>(AllowedConnectSources);
         target.AllowedScriptSources = new List<string>(AllowedScriptSources);
         target.AllowedStyleSources = new List<string>(AllowedStyleSources);
+        target.AllowInlineStyles = AllowInlineStyles;
         target.AllowedImageSources = new List<string>(AllowedImageSources);
+        target.AllowDataImages = AllowDataImages;
+        target.AllowBlobImages = AllowBlobImages;
         target.AllowedFontSources = new List<string>(AllowedFontSources);
         target.RemoveServerHeader = RemoveServerHeader;
         target.HstsMaxAge = HstsMaxAge;
@@ -59,11 +62,14 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
     {
         Enabled = true;
         IdpHost = string.Empty;
-        AllowedConnectSources = new List<string>();
-        AllowedScriptSources = new List<string>();
-        AllowedStyleSources = new List<string>();
-        AllowedImageSources = new List<string>();
-        AllowedFontSources = new List<string> { "https://cdn.jsdelivr.net" }; // Allow jsdelivr CDN for fonts
+        AllowedConnectSources = [];
+        AllowedScriptSources = [];
+        AllowedStyleSources = [];
+        AllowInlineStyles = settings.IsDev; // Allow unsafe-inline styles in development for Swagger, etc.
+        AllowedImageSources = [];
+        AllowDataImages = true; // Allow data URLs for base64 images (commonly used)
+        AllowBlobImages = true; // Allow blob images in development and production
+        AllowedFontSources = ["https://cdn.jsdelivr.net"]; // Allow jsdelivr CDN for fonts
         RemoveServerHeader = true;
         HstsMaxAge = settings.IsDev ? 0 : 31536000; // Disable HSTS in development
         HstsIncludeSubDomains = !settings.IsDev; // More relaxed in development
@@ -97,7 +103,7 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
             
             // Add Vue/Vite dev server support
             AllowedScriptSources.Add("'unsafe-eval'"); // Required for Vue dev server hot reload
-            AllowedStyleSources.Add("'unsafe-inline'"); // Required for Vue dev server inline styles
+            // Note: 'unsafe-inline' for styles is now controlled by AllowInlineStyles property
         }
 
         UiDevServerUrl = string.Empty;
@@ -129,9 +135,24 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
     public List<string> AllowedStyleSources { get; set; }
     
     /// <summary>
+    /// Whether to allow 'unsafe-inline' styles (default: true for dev, false for prod)
+    /// </summary>
+    public bool AllowInlineStyles { get; set; }
+    
+    /// <summary>
     /// Additional allowed hosts for img-src directive
     /// </summary>
     public List<string> AllowedImageSources { get; set; }
+    
+    /// <summary>
+    /// Whether to allow data: URLs in img-src directive (default: true)
+    /// </summary>
+    public bool AllowDataImages { get; set; }
+    
+    /// <summary>
+    /// Whether to allow blob: URLs in img-src directive (default: true for dev, false for prod)
+    /// </summary>
+    public bool AllowBlobImages { get; set; }
     
     /// <summary>
     /// Additional allowed hosts for font-src directive
