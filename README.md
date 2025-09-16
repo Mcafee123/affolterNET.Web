@@ -1,25 +1,64 @@
-# affolterNET.Auth - Authentication Modes
+# affolterNET.Web - Authentication & Authorization Libraries
 
-This library provides flexible authenticatConfigure the authentication mode in your `appsettings.json`:
+[![Build and Publish NuGet Packages](https://github.com/Mcafee123/affolterNET.Web/actions/workflows/nuget-packages.yml/badge.svg)](https://github.com/Mcafee123/affolterNET.Web/actions/workflows/nuget-packages.yml)
 
-```json
-{
-  "affolterNET.Web": {
-    "Bff": {
-      "Options": {
-        "AuthMode": "Authenticate",
-        "EnableSessionManagement": true,
-        "EnableTokenRefresh": true,
-        "EnableAntiforgery": true,
-        "EnableHttpsRedirection": true
-      }
-    },
-    "SecurityHeaders": {
-      "Enabled": true
-    }
-  }
-}
-```zation modes for ASP.NET Core applications with YARP reverse proxy integration.
+This library collection provides flexible authentication and authorization modes for ASP.NET Core applications with YARP reverse proxy integration.
+
+## NuGet Packages
+
+| Package | NuGet | Description |
+|---------|-------|-------------|
+| **affolterNET.Web.Core** | [![NuGet](https://img.shields.io/nuget/v/affolterNET.Web.Core.svg)](https://www.nuget.org/packages/affolterNET.Web.Core/) | Core authentication and authorization components |
+| **affolterNET.Web.Api** | [![NuGet](https://img.shields.io/nuget/v/affolterNET.Web.Api.svg)](https://www.nuget.org/packages/affolterNET.Web.Api/) | API authentication components |
+| **affolterNET.Web.Bff** | [![NuGet](https://img.shields.io/nuget/v/affolterNET.Web.Bff.svg)](https://www.nuget.org/packages/affolterNET.Web.Bff/) | BFF authentication with Duende BFF integration |
+
+### Installation
+
+```bash
+# Core package (required)
+dotnet add package affolterNET.Web.Core
+
+# For API authentication
+dotnet add package affolterNET.Web.Api
+
+# For BFF (Backend-for-Frontend) with YARP
+dotnet add package affolterNET.Web.Bff
+```
+
+## Development
+
+### Building Packages Locally
+
+Use the provided script to build and test packages locally:
+
+```bash
+# Build, test, and pack version 1.0.0
+./manage-packages.sh 1.0.0
+
+# Only build
+./manage-packages.sh 1.0.0 build
+
+# Only pack packages
+./manage-packages.sh 1.0.0 pack
+
+# Publish to local NuGet source for testing
+./manage-packages.sh 1.0.0 publish-local
+```
+
+### CI/CD Pipeline
+
+The repository includes GitHub Actions workflows for:
+
+- **Continuous Integration**: Build and test on every push/PR
+- **Package Publishing**: Automatic NuGet publishing on releases
+- **Version Management**: Automatic versioning with preview builds
+
+To publish to NuGet.org:
+1. Add `NUGET_API_KEY` to repository secrets
+2. Create a release with version tag (e.g., `v1.0.0`)
+3. Packages will be automatically published
+
+This library provides flexible authentication and authorization modes for ASP.NET Core applications with YARP reverse proxy integration.
 
 ## Authentication Modes
 
