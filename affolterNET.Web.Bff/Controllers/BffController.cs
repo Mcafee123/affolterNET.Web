@@ -32,16 +32,35 @@ public class BffController(IBffSessionService sessionService) : ControllerBase
         return Challenge(properties);
     }
 
-    [HttpPost("logout")]
+    [HttpGet("logout")]
     [Authorize]
     [IgnoreAntiforgeryToken]
-    public async Task<IActionResult> Logout()
+    public async Task<IActionResult> LogoutGet()
     {
+        // First revoke tokens
         await sessionService.RevokeTokensAsync(HttpContext);
         
+        // Clear local authentication cookies first
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        
+        // Then sign out of OIDC (Keycloak)
         return SignOut(
             new AuthenticationProperties { RedirectUri = "/" },
-            CookieAuthenticationDefaults.AuthenticationScheme,
             OpenIdConnectDefaults.AuthenticationScheme);
+    }
+
+    [HttpGet("logout-app-only")]
+    [Authorize]
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> LogoutAppOnly()
+    {
+        // Revoke tokens but don't logout from Keycloak
+        await sessionService.RevokeTokensAsync(HttpContext);
+        
+        // Clear local authentication cookies only
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        
+        // Redirect to home without going through Keycloak logout
+        return Redirect("/");
     }
 }

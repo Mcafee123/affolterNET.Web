@@ -3,6 +3,7 @@ using affolterNET.Web.Bff.Middleware;
 using affolterNET.Web.Bff.Options;
 using affolterNET.Web.Bff.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using affolterNET.Web.Core.Extensions;
@@ -59,8 +60,8 @@ public static class ServiceCollectionExtensions
         services.AddAuthentication(options =>
             {
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = "oidc";
-                options.DefaultSignOutScheme = "oidc";
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+                options.DefaultSignOutScheme = OpenIdConnectDefaults.AuthenticationScheme;
             })
             .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
             {
@@ -78,11 +79,11 @@ public static class ServiceCollectionExtensions
                 };
                 options.ExpireTimeSpan = bffOptions.CookieAuth.ExpireTimeSpan;
                 options.SlidingExpiration = bffOptions.CookieAuth.SlidingExpiration;
-                options.LoginPath = "/bff/login";
-                options.LogoutPath = "/bff/logout";
+                options.LoginPath = "/bff/account/login";
+                options.LogoutPath = "/bff/account/logout";
                 options.AccessDeniedPath = "/bff/access-denied";
             })
-            .AddOpenIdConnect("oidc", options =>
+            .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {
                 options.Authority = bffOptions.AuthProvider.Authority;
                 options.ClientId = bffOptions.AuthProvider.ClientId;
