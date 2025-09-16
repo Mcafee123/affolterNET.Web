@@ -43,6 +43,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0 # Required for GitVersion
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -110,8 +111,14 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add *.csproj */*.csproj
-        git diff --staged --quiet || git commit -m "chore: bump version to ${{ steps.version.outputs.version }}"
-        git push
+        if git diff --staged --quiet; then
+          echo "No version changes to commit"
+        else
+          git commit -m "chore: bump version to ${{ steps.version.outputs.version }}"
+          git push origin main
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build projects
       run: |
