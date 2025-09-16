@@ -32,8 +32,9 @@ env:
   BUILD_CONFIGURATION: 'Release'
 
 permissions:
-  contents: write  # Required to push commits back to repository
-  actions: read    # Required to read workflow artifacts
+  contents: write       # Required to push commits back to repository
+  actions: read         # Required to read workflow artifacts
+  pull-requests: write  # Required to create pull requests
 
 jobs:
   build-and-test:
