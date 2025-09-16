@@ -2,7 +2,7 @@ name: Build and Publish NuGet Packages
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - '**/*.csproj'
       - '**/*.cs'
@@ -112,17 +112,33 @@ jobs:
     - name: Commit version changes
       if: github.ref == 'refs/heads/main' && github.event_name == 'push' && github.event.inputs.version == ''
       run: |
+        NEW_VERSION="${{ steps.version.outputs.version }}"
+        BRANCH_NAME="release/v$NEW_VERSION"
+        
+        # Create release branch
+        git checkout -b "$BRANCH_NAME"
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
+        
+        # Add and commit changes
         git add *.csproj */*.csproj
         if git diff --staged --quiet; then
           echo "No version changes to commit"
         else
-          git commit -m "chore: bump version to ${{ steps.version.outputs.version }}"
-          git push origin main
+          git commit -m "chore: bump version to $NEW_VERSION"
+          git push origin "$BRANCH_NAME"
+          
+          # Create pull request
+          gh pr create \
+            --title "Release v$NEW_VERSION" \
+            --body "Automated version bump to v$NEW_VERSION" \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --label "release"
         fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build projects
       run: |
