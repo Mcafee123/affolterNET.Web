@@ -115,7 +115,11 @@ jobs:
         NEW_VERSION="${{ steps.version.outputs.version }}"
         BRANCH_NAME="release/v$NEW_VERSION"
         
-        # Create release branch
+        # Delete existing branch if it exists (both local and remote)
+        git branch -D "$BRANCH_NAME" 2>/dev/null || true
+        git push origin --delete "$BRANCH_NAME" 2>/dev/null || true
+        
+        # Create fresh release branch
         git checkout -b "$BRANCH_NAME"
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
@@ -130,6 +134,9 @@ jobs:
           
           # Ensure release label exists
           gh label create "release" --description "Automated release version bump" --color "0366d6" --force || true
+          
+          # Close existing PR if it exists
+          gh pr close "$BRANCH_NAME" 2>/dev/null || true
           
           # Create pull request
           gh pr create \
