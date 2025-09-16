@@ -23,7 +23,7 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     {
         options.ApiRoutePrefixes = ApiRoutePrefixes;
         options.AuthMode = AuthMode;
-        options.BackchannelLogoutAllUserSessions = BackchannelLogoutAllUserSessions;
+        // options.BackchannelLogoutAllUserSessions = BackchannelLogoutAllUserSessions;
         options.CallbackPath = CallbackPath;
         options.ConfigureCustomMiddleware = ConfigureCustomMiddleware;
         options.EnableApiNotFound = EnableApiNotFound;
@@ -31,17 +31,17 @@ public class BffOptions: IConfigurableOptions<BffOptions>
         options.EnableHttpsRedirection = EnableHttpsRedirection;
         options.EnableNoUnauthorizedRedirect = EnableNoUnauthorizedRedirect;
         options.EnableRptTokens = EnableRptTokens;
-        options.EnableSessionManagement = EnableSessionManagement;
+        // options.EnableSessionManagement = EnableSessionManagement;
         options.EnableStaticFiles = EnableStaticFiles;
         options.EnableTokenRefresh = EnableTokenRefresh;
-        options.EnableYarp = EnableYarp;
+        // options.EnableYarp = EnableYarp;
         options.ErrorPath = ErrorPath;
         options.FallbackPage = FallbackPage;
-        options.ManagementBasePath = ManagementBasePath;
+        // options.ManagementBasePath = ManagementBasePath;
         options.PostLogoutRedirectUri = PostLogoutRedirectUri;
         options.RedirectUri = RedirectUri;
-        options.RequireLogoutSessionId = RequireLogoutSessionId;
-        options.RevokeRefreshTokenOnLogout = RevokeRefreshTokenOnLogout;
+        // options.RequireLogoutSessionId = RequireLogoutSessionId;
+        // options.RevokeRefreshTokenOnLogout = RevokeRefreshTokenOnLogout;
         options.SignoutCallBack = SignoutCallBack;
     }
 
@@ -56,18 +56,20 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// Constructor with BffAppSettings parameter for meaningful defaults
     /// </summary>
     /// <param name="settings">Application settings containing environment and authentication mode</param>
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     private BffOptions(AppSettings settings)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     {
         CallbackPath = "/signin-oidc";
         SignoutCallBack = "/signout-callback-oidc";
         PostLogoutRedirectUri = "/signout-callback-oidc";
         RedirectUri = string.Empty;
         
-        EnableSessionManagement = true;
-        ManagementBasePath = "/bff";
-        RequireLogoutSessionId = false;
-        RevokeRefreshTokenOnLogout = true;
-        BackchannelLogoutAllUserSessions = false;
+        // EnableSessionManagement = true;
+        // ManagementBasePath = "/bff";
+        // RequireLogoutSessionId = false;
+        // RevokeRefreshTokenOnLogout = true;
+        // BackchannelLogoutAllUserSessions = false;
     }
     
     /// <summary>
@@ -114,13 +116,11 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// <summary>
     /// Whether to enable unauthorized redirect prevention for API routes
     /// </summary>
-    [Obsolete("not used at the moment")]
     public bool EnableNoUnauthorizedRedirect { get; set; } = true;
 
     /// <summary>
     /// Whether to enable RPT tokens for permission-based auth
     /// </summary>
-    [Obsolete("not used at the moment")]
     public bool EnableRptTokens { get; set; } = true;
 
     /// <summary>
@@ -137,7 +137,6 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// <summary>
     /// Whether to enable token refresh middleware
     /// </summary>
-    [Obsolete("not used at the moment")]
     public bool EnableTokenRefresh { get; set; } = true;
 
     /// <summary>
