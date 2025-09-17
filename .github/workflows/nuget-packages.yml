@@ -67,13 +67,18 @@ jobs:
         elif [ "${{ github.event_name }}" == "release" ]; then
           echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
         else
+          # Get current version from project file
+          CURRENT_VERSION=$(grep -E '<Version>[^<]*</Version>' affolterNET.Web.Core/affolterNET.Web.Core.csproj | sed -E 's/.*<Version>([^<]*)<\/Version>.*/\1/' | tr -d ' ')
+          echo "Found current version: '$CURRENT_VERSION'"
+          
           # Auto-increment patch version ONLY for develop branch pushes
           if [ "${{ github.ref }}" == "refs/heads/develop" ]; then
-            # Get current version from project file
-            CURRENT_VERSION=$(grep -oE '<Version>[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?</Version>' affolterNET.Web.Core/affolterNET.Web.Core.csproj | sed -E 's/<\/?Version>//g')
-            echo "Current version: $CURRENT_VERSION"
+            if [ -z "$CURRENT_VERSION" ]; then
+              echo "Error: Could not find current version in project file"
+              exit 1
+            fi
             
-            # Parse version components
+            # Parse version components (remove any prerelease suffix for parsing)
             MAIN_VERSION=$(echo "$CURRENT_VERSION" | cut -d'-' -f1)
             PRERELEASE=$(echo "$CURRENT_VERSION" | grep -oE '\-[a-zA-Z0-9.]+' || echo "")
             MAJOR=$(echo "$MAIN_VERSION" | cut -d'.' -f1)
@@ -93,16 +98,25 @@ jobs:
             echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           else
             # Use current version as-is for all other branches (main, feature, etc.)
-            VERSION=$(grep -oE '<Version>[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?</Version>' affolterNET.Web.Core/affolterNET.Web.Core.csproj | sed -E 's/<\/?Version>//g')
-            echo "Using existing version: $VERSION"
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            if [ -z "$CURRENT_VERSION" ]; then
+              echo "Error: Could not find current version in project file"
+              exit 1
+            fi
+            echo "Using existing version: $CURRENT_VERSION"
+            echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           fi
         fi
 
     - name: Update project versions
       run: |
         VERSION="${{ needs.build-and-test.outputs.version }}"
-        echo "Using version: $VERSION"
+        echo "Received version from build job: '$VERSION'"
+        
+        if [ -z "$VERSION" ]; then
+          echo "Error: No version received from build job, trying to read directly from project file"
+          VERSION=$(grep -E '<Version>[^<]*</Version>' affolterNET.Web.Core/affolterNET.Web.Core.csproj | sed -E 's/.*<Version>([^<]*)<\/Version>.*/\1/' | tr -d ' ')
+          echo "Read version directly: '$VERSION'"
+        fi
         
         # Only update versions if they differ (for main branch, they should already be correct)
         if [ "${{ github.ref }}" != "refs/heads/main" ]; then
