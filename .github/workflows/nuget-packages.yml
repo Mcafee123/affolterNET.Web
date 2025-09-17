@@ -49,12 +49,14 @@ jobs:
     - name: Get current version and bump
       id: bump
       run: |
-        # Get current version from project file
-        CURRENT_VERSION=$(grep -oP '<Version>\K[^<]+' affolterNET.Web.Core/affolterNET.Web.Core.csproj)
+        # Get current version from project file using standard grep and sed
+        CURRENT_VERSION=$(grep '<Version>' affolterNET.Web.Core/affolterNET.Web.Core.csproj | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/' | tr -d ' ')
         echo "Found current version: '$CURRENT_VERSION'"
         
         if [ -z "$CURRENT_VERSION" ]; then
           echo "Error: Could not find current version in project file"
+          echo "Debug: Contents of project file:"
+          cat affolterNET.Web.Core/affolterNET.Web.Core.csproj
           exit 1
         fi
         
@@ -62,6 +64,8 @@ jobs:
         MAJOR=$(echo "$CURRENT_VERSION" | cut -d'.' -f1)
         MINOR=$(echo "$CURRENT_VERSION" | cut -d'.' -f2)
         PATCH=$(echo "$CURRENT_VERSION" | cut -d'.' -f3)
+        
+        echo "Parsed version components: MAJOR=$MAJOR, MINOR=$MINOR, PATCH=$PATCH"
         
         # Increment patch version
         NEW_PATCH=$((PATCH + 1))
@@ -123,12 +127,14 @@ jobs:
     - name: Get current version
       id: get-version
       run: |
-        # Get current version from project file
-        VERSION=$(grep -oP '<Version>\K[^<]+' affolterNET.Web.Core/affolterNET.Web.Core.csproj)
+        # Get current version from project file using standard grep and sed
+        VERSION=$(grep '<Version>' affolterNET.Web.Core/affolterNET.Web.Core.csproj | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/' | tr -d ' ')
         echo "Current version: '$VERSION'"
         
         if [ -z "$VERSION" ]; then
           echo "Error: Could not find current version in project file"
+          echo "Debug: Contents of project file:"
+          cat affolterNET.Web.Core/affolterNET.Web.Core.csproj
           exit 1
         fi
         
