@@ -36,11 +36,9 @@ log_error() {
 }
 
 load_config() {
-    # Convert relative config path to absolute if needed (relative to script directory as fallback)
-    if [[ ! "$CONFIG_FILE" = /* ]]; then
-        if [ ! -f "$CONFIG_FILE" ]; then
-            CONFIG_FILE="$SCRIPT_DIR/$CONFIG_FILE"
-        fi
+    # Use default config file if path is relative
+    if [[ ! "$CONFIG_FILE" = /* ]] && [ ! -f "$CONFIG_FILE" ]; then
+        CONFIG_FILE="$SCRIPT_DIR/$CONFIG_FILE"
     fi
     
     if [ ! -f "$CONFIG_FILE" ]; then
@@ -61,10 +59,6 @@ load_config() {
     
     # Set config directory and change to it for relative path resolution
     CONFIG_DIR="$(dirname "$CONFIG_FILE")"
-    log_info "Loaded configuration from: $CONFIG_FILE"
-    log_info "Using config directory as working directory: $CONFIG_DIR"
-    
-    # Change to config directory for relative path resolution
     cd "$CONFIG_DIR" || {
         log_error "Failed to change to config directory: $CONFIG_DIR"
         exit 1
@@ -101,46 +95,56 @@ get_package_version() {
     echo "$version"
 }
 
-backup_file() {
-    local file="$1"
-    local backup_enabled=$(jq -r ".settings.backup_files" "$CONFIG_FILE")
+# Helper functions using dotnet commands for reliable project analysis
+has_project_reference() {
+    local project_file="$1"
+    local project_name="$2"
     
-    if [ "$backup_enabled" == "true" ]; then
-        cp "$file" "${file}.bak"
-    fi
-}
-
-cleanup_backup() {
-    local file="$1"
-    local backup_file="${file}.bak"
-    local auto_restore=$(jq -r ".settings.auto_restore" "$CONFIG_FILE")
-    
-    if [ -f "$backup_file" ] && [ "$auto_restore" == "true" ]; then
-        rm "$backup_file" 2>/dev/null || true
-    fi
-}
-
-safe_sed_replace() {
-    local file="$1"
-    local pattern="$2"
-    local replacement="$3"
-    
-    # Create a temporary file
-    local temp_file="${file}.tmp.$$"
-    
-    # Perform the replacement and write to temp file
-    if sed "$pattern" "$file" > "$temp_file" 2>/dev/null; then
-        # If sed succeeded, replace the original file
-        if mv "$temp_file" "$file"; then
-            return 0
-        else
-            rm -f "$temp_file"
-            return 1
-        fi
+    # Use dotnet list reference to check for project references
+    # Parse output to look for the specific project file (basename matching)
+    local references=$(dotnet list "$project_file" reference 2>/dev/null)
+    if [ $? -eq 0 ] && [ -n "$references" ]; then
+        # Skip the header lines and check for project name in the paths
+        echo "$references" | tail -n +3 | grep -q "$project_name\.csproj"
     else
-        rm -f "$temp_file"
         return 1
     fi
+}
+
+has_package_reference() {
+    local project_file="$1"
+    local package_name="$2"
+    
+    # First check the project file directly for PackageReference
+    if grep -q "PackageReference.*Include=\"$package_name\"" "$project_file"; then
+        return 0
+    fi
+    
+    # Fallback: Use dotnet list package to check for package references
+    # This only works for packages that can be resolved
+    local packages=$(dotnet list "$project_file" package 2>/dev/null)
+    if [ $? -eq 0 ] && [ -n "$packages" ]; then
+        echo "$packages" | grep -q "^   > $package_name "
+    else
+        return 1
+    fi
+}
+
+get_package_version_from_project() {
+    local project_file="$1"
+    local package_name="$2"
+    
+    # First try to get version from project file directly
+    local version=$(grep "PackageReference.*Include=\"$package_name\"" "$project_file" | grep -oE 'Version="[^"]*"' | sed 's/Version="//g' | sed 's/"//g' | head -1)
+    if [ -n "$version" ]; then
+        echo "$version"
+        return 0
+    fi
+    
+    # Fallback: Use dotnet list package to get version information
+    # This only works for packages that can be resolved
+    local version=$(dotnet list "$project_file" package 2>/dev/null | awk '/Top-level Package/,/^$/' | grep "^   > $package_name " | awk '{print $3}' | head -1)
+    echo "${version:-unknown}"
 }
 
 switch_to_local() {
@@ -154,8 +158,6 @@ switch_to_local() {
         local local_path=$(echo "$package" | jq -r '.local_path')
         local target_projects=$(echo "$package" | jq -r '.target_projects[]')
         
-        log_info "Processing package: $package_name"
-        
         # Process each target project
         while IFS= read -r project_file; do
             if [ ! -f "$project_file" ]; then
@@ -165,23 +167,19 @@ switch_to_local() {
             
             # Check for PackageReference with this package name
             if grep -q "PackageReference.*Include=\"$package_name\"" "$project_file"; then
-                backup_file "$project_file"
-                
                 # Calculate relative path from project directory to local_path
                 local project_dir=$(dirname "$project_file")
                 local relative_local_path="../$local_path"
                 
                 # Replace PackageReference with ProjectReference (Unix-style path)
-                if safe_sed_replace "$project_file" "s|<PackageReference Include=\"$package_name\"[^>]*/>|<ProjectReference Include=\"$relative_local_path\" />|g"; then
-                    cleanup_backup "$project_file"
+                if sed -i.bak "s|<PackageReference Include=\"$package_name\"[^>]*/>|<ProjectReference Include=\"$relative_local_path\" />|g" "$project_file"; then
+                    rm -f "${project_file}.bak"
                     log_success "Updated $project_file to use local reference"
                     ((changes_made++))
                 else
                     log_error "Failed to update $project_file"
                     ((errors++))
                 fi
-            else
-                log_info "$project_file already uses local references or doesn't contain $package_name"
             fi
         done <<< "$target_projects"
     done <<< "$(jq -c '.packages[]' "$CONFIG_FILE")"
@@ -209,8 +207,6 @@ switch_to_nuget() {
         local local_path=$(echo "$package" | jq -r '.local_path')
         local target_projects=$(echo "$package" | jq -r '.target_projects[]')
         
-        log_info "Processing package: $package_name"
-        
         # Get version for this package
         local version=$(get_package_version "$package_name")
         if [ $? -ne 0 ]; then
@@ -218,8 +214,6 @@ switch_to_nuget() {
             ((errors++))
             continue
         fi
-        
-        log_info "Using version: $version"
         
         # Process each target project
         while IFS= read -r project_file; do
@@ -231,20 +225,16 @@ switch_to_nuget() {
             # Check for ProjectReference with this package (handle both Unix and Windows paths)
             local project_name=$(basename "$local_path" .csproj)
             if grep -q "ProjectReference.*Include=\".*$project_name\.csproj\"" "$project_file"; then
-                backup_file "$project_file"
-                
                 # Replace any ProjectReference that includes this project name with PackageReference
                 # This will handle both Unix and Windows style paths
-                if safe_sed_replace "$project_file" "s|<ProjectReference Include=\"[^\"]*$project_name\.csproj\" />|<PackageReference Include=\"$package_name\" Version=\"$version\" />|g"; then
-                    cleanup_backup "$project_file"
+                if sed -i.bak "s|<ProjectReference Include=\"[^\"]*$project_name\.csproj\" />|<PackageReference Include=\"$package_name\" Version=\"$version\" />|g" "$project_file"; then
+                    rm -f "${project_file}.bak"
                     log_success "Updated $project_file to use NuGet reference (v$version)"
                     ((changes_made++))
                 else
                     log_error "Failed to update $project_file"
                     ((errors++))
                 fi
-            else
-                log_info "$project_file already uses NuGet references or doesn't contain $package_name"
             fi
         done <<< "$target_projects"
     done <<< "$(jq -c '.packages[]' "$CONFIG_FILE")"
@@ -264,72 +254,28 @@ switch_to_nuget() {
 validate_configuration() {
     log_info "Validating configuration and project files..."
     local validation_errors=0
-    local total_references=0
     
-    # Check if all configured packages exist in target projects
+    # Check if all configured packages and projects exist
     while IFS= read -r package; do
         local package_name=$(echo "$package" | jq -r '.name')
         local local_path=$(echo "$package" | jq -r '.local_path')
         local target_projects=$(echo "$package" | jq -r '.target_projects[]')
         
-        log_info "Validating package: $package_name"
-        
-        # Check if local project exists (resolve relative path)
+        # Check if local project exists
         local resolved_local_path="$local_path"
         if [[ ! "$local_path" = /* ]]; then
             resolved_local_path="$CONFIG_DIR/$local_path"
         fi
         if [ ! -f "$resolved_local_path" ]; then
-            log_error "  Local project file not found: $resolved_local_path"
+            log_error "Local project file not found: $resolved_local_path"
             ((validation_errors++))
         fi
         
-        # Check each target project
+        # Check each target project exists
         while IFS= read -r project_file; do
             if [ ! -f "$project_file" ]; then
-                log_error "  Target project file not found: $project_file"
+                log_error "Target project file not found: $project_file"
                 ((validation_errors++))
-                continue
-            fi
-            
-            # Count total references for this package
-            local package_refs=$(grep -c "PackageReference.*$package_name\|ProjectReference.*$(basename "$local_path" .csproj)" "$project_file" 2>/dev/null || echo "0")
-            ((total_references += package_refs))
-            
-            if [ $package_refs -eq 0 ]; then
-                log_warning "  No references to $package_name found in $project_file"
-            fi
-        done <<< "$target_projects"
-    done <<< "$(jq -c '.packages[]' "$CONFIG_FILE")"
-    
-    # Look for unconfigured references in project files
-    log_info "Scanning for unconfigured references..."
-    local configured_packages=$(jq -r '.packages[].name' "$CONFIG_FILE")
-    
-    while IFS= read -r package; do
-        local target_projects=$(echo "$package" | jq -r '.target_projects[]')
-        
-        while IFS= read -r project_file; do
-            if [ -f "$project_file" ]; then
-                # Find all PackageReference and ProjectReference lines
-                local all_refs=$(grep -E "(PackageReference|ProjectReference)" "$project_file" 2>/dev/null || true)
-                
-                if [ -n "$all_refs" ]; then
-                    while IFS= read -r ref_line; do
-                        if [[ "$ref_line" =~ PackageReference.*Include=\"([^\"]+)\" ]]; then
-                            local ref_package="${BASH_REMATCH[1]}"
-                            if ! echo "$configured_packages" | grep -q "^$ref_package$"; then
-                                log_warning "  Unconfigured PackageReference: $ref_package in $project_file"
-                            fi
-                        elif [[ "$ref_line" =~ ProjectReference.*Include=\"([^\"]+)\" ]]; then
-                            local ref_project="${BASH_REMATCH[1]}"
-                            local configured_locals=$(jq -r '.packages[].local_path' "$CONFIG_FILE")
-                            if ! echo "$configured_locals" | grep -q "$ref_project"; then
-                                log_warning "  Unconfigured ProjectReference: $ref_project in $project_file"
-                            fi
-                        fi
-                    done <<< "$all_refs"
-                fi
             fi
         done <<< "$target_projects"
     done <<< "$(jq -c '.packages[]' "$CONFIG_FILE")"
@@ -337,7 +283,6 @@ validate_configuration() {
     echo "================================================================================"
     if [ $validation_errors -eq 0 ]; then
         log_success "Configuration validation completed successfully"
-        log_info "Found $total_references total configured references"
     else
         log_error "Configuration validation failed with $validation_errors errors"
         return 1
@@ -370,12 +315,13 @@ show_current_references() {
             local project_basename=$(basename "$project_file")
             local project_name=$(basename "$local_path" .csproj)
             
-            # Check for ProjectReference (both Unix and Windows paths)
-            if grep -q "ProjectReference.*Include=\".*$project_name\.csproj\"" "$project_file"; then
+            # Check for ProjectReference using dotnet helper
+            if has_project_reference "$project_file" "$project_name"; then
                 echo "  🔗 $project_basename: LOCAL project reference"
                 ((total_local++))
-            elif grep -q "PackageReference.*Include=\"$package_name\"" "$project_file"; then
-                local version=$(grep -oE "PackageReference Include=\"$package_name\" Version=\"[^\"]*\"" "$project_file" | grep -oE 'Version="[^"]*"' | sed 's/Version="//g' | sed 's/"//g')
+            elif has_package_reference "$project_file" "$package_name"; then
+                # Extract version using dotnet helper
+                local version=$(get_package_version_from_project "$project_file" "$package_name")
                 echo "  📦 $project_basename: NUGET reference (v$version)"
                 ((total_nuget++))
             else
@@ -470,18 +416,14 @@ main() {
     
     case $MODE in
         local)
-            log_info "Switching to local project references..."
             switch_to_local
             echo ""
             show_current_references
-            log_success "Switch to local references completed"
             ;;
         nuget)
-            log_info "Switching to NuGet package references..."
             switch_to_nuget
             echo ""
             show_current_references
-            log_success "Switch to NuGet references completed"
             ;;
         status)
             show_current_references
