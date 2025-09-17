@@ -47,6 +47,8 @@ jobs:
     - name: Show initial status
       run: |
         echo "=== Initial Reference Status ==="
+        # First, ensure dotnet is working and do a restore
+        dotnet restore --verbosity quiet
         ./switch-references.sh status
         
     - name: Test switch to NuGet references
