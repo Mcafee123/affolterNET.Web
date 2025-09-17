@@ -16,6 +16,8 @@ NC='\033[0m' # No Color
 # Default configuration file
 CONFIG_FILE="reference-config.json"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ORIGINAL_WD="$(pwd)"
+CONFIG_DIR=""
 
 log_info() {
     echo -e "${BLUE}[INFO] $1${NC}"
@@ -34,6 +36,13 @@ log_error() {
 }
 
 load_config() {
+    # Convert relative config path to absolute if needed (relative to script directory as fallback)
+    if [[ ! "$CONFIG_FILE" = /* ]]; then
+        if [ ! -f "$CONFIG_FILE" ]; then
+            CONFIG_FILE="$SCRIPT_DIR/$CONFIG_FILE"
+        fi
+    fi
+    
     if [ ! -f "$CONFIG_FILE" ]; then
         log_error "Configuration file not found: $CONFIG_FILE"
         exit 1
@@ -50,7 +59,16 @@ load_config() {
         exit 1
     fi
     
+    # Set config directory and change to it for relative path resolution
+    CONFIG_DIR="$(dirname "$CONFIG_FILE")"
     log_info "Loaded configuration from: $CONFIG_FILE"
+    log_info "Using config directory as working directory: $CONFIG_DIR"
+    
+    # Change to config directory for relative path resolution
+    cd "$CONFIG_DIR" || {
+        log_error "Failed to change to config directory: $CONFIG_DIR"
+        exit 1
+    }
 }
 
 get_package_version() {
@@ -60,6 +78,11 @@ get_package_version() {
     if [ "$version_source" == "null" ] || [ -z "$version_source" ]; then
         log_error "No version source configured for package: $package_name"
         return 1
+    fi
+    
+    # Resolve relative path from config directory
+    if [[ ! "$version_source" = /* ]]; then
+        version_source="$CONFIG_DIR/$version_source"
     fi
     
     if [ ! -f "$version_source" ]; then
@@ -200,15 +223,23 @@ validate_configuration() {
         
         log_info "Validating package: $package_name"
         
-        # Check if version source exists
-        if [ ! -f "$version_source" ]; then
-            log_error "  Version source file not found: $version_source"
+        # Check if version source exists (resolve relative path)
+        local resolved_version_source="$version_source"
+        if [[ ! "$version_source" = /* ]]; then
+            resolved_version_source="$CONFIG_DIR/$version_source"
+        fi
+        if [ ! -f "$resolved_version_source" ]; then
+            log_error "  Version source file not found: $resolved_version_source"
             ((validation_errors++))
         fi
         
-        # Check if local project exists
-        if [ ! -f "$local_path" ]; then
-            log_error "  Local project file not found: $local_path"
+        # Check if local project exists (resolve relative path)
+        local resolved_local_path="$local_path"
+        if [[ ! "$local_path" = /* ]]; then
+            resolved_local_path="$CONFIG_DIR/$local_path"
+        fi
+        if [ ! -f "$resolved_local_path" ]; then
+            log_error "  Local project file not found: $resolved_local_path"
             ((validation_errors++))
         fi
         
@@ -378,6 +409,11 @@ parse_arguments() {
     if [ -z "$MODE" ]; then
         MODE="status"
     fi
+    
+    # Convert relative config path to absolute based on original working directory
+    if [[ ! "$CONFIG_FILE" = /* ]]; then
+        CONFIG_FILE="$ORIGINAL_WD/$CONFIG_FILE"
+    fi
 }
 
 main() {
@@ -385,11 +421,6 @@ main() {
     
     # Parse command line arguments
     parse_arguments "$@"
-    
-    # Convert relative config path to absolute
-    if [[ ! "$CONFIG_FILE" = /* ]]; then
-        CONFIG_FILE="$SCRIPT_DIR/$CONFIG_FILE"
-    fi
     
     # Load and validate configuration
     load_config
@@ -421,6 +452,9 @@ main() {
             exit 1
             ;;
     esac
+    
+    # Return to original working directory
+    cd "$ORIGINAL_WD" || true
 }
 
 # Run main function with all arguments
