@@ -1,0 +1,18 @@
+{
+  "packages": [
+    {
+      "name": "affolterNET.Web.Core",
+      "local_path": "../affolterNET.Web.Core/affolterNET.Web.Core.csproj",
+      "version_source": "affolterNET.Web.Core/affolterNET.Web.Core.csproj",
+      "target_projects": [
+        "affolterNET.Web.Api/affolterNET.Web.Api.csproj",
+        "affolterNET.Web.Bff/affolterNET.Web.Bff.csproj"
+      ]
+    }
+  ],
+  "settings": {
+    "backup_files": true,
+    "auto_restore": true,
+    "default_version_extraction": "<Version>([^<]+)</Version>"
+  }
+}
