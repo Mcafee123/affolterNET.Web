@@ -73,28 +73,28 @@ load_config() {
 
 get_package_version() {
     local package_name="$1"
-    local version_source=$(jq -r ".packages[] | select(.name == \"$package_name\") | .version_source" "$CONFIG_FILE")
+    local local_path=$(jq -r ".packages[] | select(.name == \"$package_name\") | .local_path" "$CONFIG_FILE")
     
-    if [ "$version_source" == "null" ] || [ -z "$version_source" ]; then
-        log_error "No version source configured for package: $package_name"
+    if [ "$local_path" == "null" ] || [ -z "$local_path" ]; then
+        log_error "No local_path configured for package: $package_name"
         return 1
     fi
     
     # Resolve relative path from config directory
-    if [[ ! "$version_source" = /* ]]; then
-        version_source="$CONFIG_DIR/$version_source"
+    if [[ ! "$local_path" = /* ]]; then
+        local_path="$CONFIG_DIR/$local_path"
     fi
     
-    if [ ! -f "$version_source" ]; then
-        log_error "Version source file not found: $version_source"
+    if [ ! -f "$local_path" ]; then
+        log_error "Local project file not found: $local_path"
         return 1
     fi
     
     local version_pattern=$(jq -r ".settings.default_version_extraction" "$CONFIG_FILE")
-    local version=$(grep -oE "$version_pattern" "$version_source" | sed -E 's/<\/?Version>//g' | head -1)
+    local version=$(grep -oE "$version_pattern" "$local_path" | sed -E 's/<\/?Version>//g' | head -1)
     
     if [ -z "$version" ]; then
-        log_error "Could not extract version from: $version_source"
+        log_error "Could not extract version from: $local_path"
         return 1
     fi
     
@@ -142,8 +142,13 @@ switch_to_local() {
             # Check for PackageReference with this package name
             if grep -q "PackageReference.*Include=\"$package_name\"" "$project_file"; then
                 backup_file "$project_file"
+                
+                # Calculate relative path from project directory to local_path
+                local project_dir=$(dirname "$project_file")
+                local relative_local_path="../$local_path"
+                
                 # Replace PackageReference with ProjectReference (Unix-style path)
-                sed -i.tmp "s|<PackageReference Include=\"$package_name\"[^>]*/>|<ProjectReference Include=\"$local_path\" />|g" "$project_file"
+                sed -i.tmp "s|<PackageReference Include=\"$package_name\"[^>]*/>|<ProjectReference Include=\"$relative_local_path\" />|g" "$project_file"
                 rm "${project_file}.tmp" 2>/dev/null || true
                 cleanup_backup "$project_file"
                 log_success "Updated $project_file to use local reference"
@@ -227,19 +232,8 @@ validate_configuration() {
         local package_name=$(echo "$package" | jq -r '.name')
         local local_path=$(echo "$package" | jq -r '.local_path')
         local target_projects=$(echo "$package" | jq -r '.target_projects[]')
-        local version_source=$(echo "$package" | jq -r '.version_source')
         
         log_info "Validating package: $package_name"
-        
-        # Check if version source exists (resolve relative path)
-        local resolved_version_source="$version_source"
-        if [[ ! "$version_source" = /* ]]; then
-            resolved_version_source="$CONFIG_DIR/$version_source"
-        fi
-        if [ ! -f "$resolved_version_source" ]; then
-            log_error "  Version source file not found: $resolved_version_source"
-            ((validation_errors++))
-        fi
         
         # Check if local project exists (resolve relative path)
         local resolved_local_path="$local_path"
