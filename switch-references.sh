@@ -139,8 +139,10 @@ switch_to_local() {
                 continue
             fi
             
-            if grep -q "PackageReference.*$package_name" "$project_file"; then
+            # Check for PackageReference with this package name
+            if grep -q "PackageReference.*Include=\"$package_name\"" "$project_file"; then
                 backup_file "$project_file"
+                # Replace PackageReference with ProjectReference (Unix-style path)
                 sed -i.tmp "s|<PackageReference Include=\"$package_name\"[^>]*/>|<ProjectReference Include=\"$local_path\" />|g" "$project_file"
                 rm "${project_file}.tmp" 2>/dev/null || true
                 cleanup_backup "$project_file"
@@ -187,11 +189,17 @@ switch_to_nuget() {
                 continue
             fi
             
-            if grep -q "ProjectReference.*$(basename "$local_path" .csproj)" "$project_file"; then
+            # Check for ProjectReference with this package (handle both Unix and Windows paths)
+            local project_name=$(basename "$local_path" .csproj)
+            if grep -q "ProjectReference.*Include=\".*$project_name\.csproj\"" "$project_file"; then
                 backup_file "$project_file"
-                # Escape the local path for sed
-                local escaped_path=$(echo "$local_path" | sed 's/[[\.*^$()+?{|]/\\&/g')
-                sed -i.tmp "s|<ProjectReference Include=\"$escaped_path\" />|<PackageReference Include=\"$package_name\" Version=\"$version\" />|g" "$project_file"
+                
+                # Replace any ProjectReference that includes this project name with PackageReference
+                # This will handle both Unix and Windows style paths
+                sed -i.tmp \
+                    "s|<ProjectReference Include=\"[^\"]*$project_name\.csproj\" />|<PackageReference Include=\"$package_name\" Version=\"$version\" />|g" \
+                    "$project_file"
+                    
                 rm "${project_file}.tmp" 2>/dev/null || true
                 cleanup_backup "$project_file"
                 log_success "Updated $project_file to use NuGet reference (v$version)"
@@ -327,11 +335,13 @@ show_current_references() {
             fi
             
             local project_basename=$(basename "$project_file")
+            local project_name=$(basename "$local_path" .csproj)
             
-            if grep -q "ProjectReference.*$(basename "$local_path" .csproj)" "$project_file"; then
+            # Check for ProjectReference (both Unix and Windows paths)
+            if grep -q "ProjectReference.*Include=\".*$project_name\.csproj\"" "$project_file"; then
                 echo "  🔗 $project_basename: LOCAL project reference"
                 ((total_local++))
-            elif grep -q "PackageReference.*$package_name" "$project_file"; then
+            elif grep -q "PackageReference.*Include=\"$package_name\"" "$project_file"; then
                 local version=$(grep -oE "PackageReference Include=\"$package_name\" Version=\"[^\"]*\"" "$project_file" | grep -oE 'Version="[^"]*"' | sed 's/Version="//g' | sed 's/"//g')
                 echo "  📦 $project_basename: NUGET reference (v$version)"
                 ((total_nuget++))
