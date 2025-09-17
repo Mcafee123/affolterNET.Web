@@ -120,9 +120,33 @@ cleanup_backup() {
     fi
 }
 
+safe_sed_replace() {
+    local file="$1"
+    local pattern="$2"
+    local replacement="$3"
+    
+    # Create a temporary file
+    local temp_file="${file}.tmp.$$"
+    
+    # Perform the replacement and write to temp file
+    if sed "$pattern" "$file" > "$temp_file" 2>/dev/null; then
+        # If sed succeeded, replace the original file
+        if mv "$temp_file" "$file"; then
+            return 0
+        else
+            rm -f "$temp_file"
+            return 1
+        fi
+    else
+        rm -f "$temp_file"
+        return 1
+    fi
+}
+
 switch_to_local() {
     log_info "Switching to local project references..."
     local changes_made=0
+    local errors=0
     
     # Process each package from configuration
     while IFS= read -r package; do
@@ -148,27 +172,36 @@ switch_to_local() {
                 local relative_local_path="../$local_path"
                 
                 # Replace PackageReference with ProjectReference (Unix-style path)
-                sed -i.tmp "s|<PackageReference Include=\"$package_name\"[^>]*/>|<ProjectReference Include=\"$relative_local_path\" />|g" "$project_file"
-                rm "${project_file}.tmp" 2>/dev/null || true
-                cleanup_backup "$project_file"
-                log_success "Updated $project_file to use local reference"
-                ((changes_made++))
+                if safe_sed_replace "$project_file" "s|<PackageReference Include=\"$package_name\"[^>]*/>|<ProjectReference Include=\"$relative_local_path\" />|g"; then
+                    cleanup_backup "$project_file"
+                    log_success "Updated $project_file to use local reference"
+                    ((changes_made++))
+                else
+                    log_error "Failed to update $project_file"
+                    ((errors++))
+                fi
             else
                 log_info "$project_file already uses local references or doesn't contain $package_name"
             fi
         done <<< "$target_projects"
     done <<< "$(jq -c '.packages[]' "$CONFIG_FILE")"
     
-    if [ $changes_made -eq 0 ]; then
+    if [ $errors -gt 0 ]; then
+        log_error "Completed with $errors error(s)"
+        return 1
+    elif [ $changes_made -eq 0 ]; then
         log_warning "No changes were needed - projects already use local references"
     else
         log_success "Made $changes_made changes to use local references"
     fi
+    
+    return 0
 }
 
 switch_to_nuget() {
     log_info "Switching to NuGet package references..."
     local changes_made=0
+    local errors=0
     
     # Process each package from configuration
     while IFS= read -r package; do
@@ -182,6 +215,7 @@ switch_to_nuget() {
         local version=$(get_package_version "$package_name")
         if [ $? -ne 0 ]; then
             log_error "Failed to get version for $package_name, skipping..."
+            ((errors++))
             continue
         fi
         
@@ -201,25 +235,30 @@ switch_to_nuget() {
                 
                 # Replace any ProjectReference that includes this project name with PackageReference
                 # This will handle both Unix and Windows style paths
-                sed -i.tmp \
-                    "s|<ProjectReference Include=\"[^\"]*$project_name\.csproj\" />|<PackageReference Include=\"$package_name\" Version=\"$version\" />|g" \
-                    "$project_file"
-                    
-                rm "${project_file}.tmp" 2>/dev/null || true
-                cleanup_backup "$project_file"
-                log_success "Updated $project_file to use NuGet reference (v$version)"
-                ((changes_made++))
+                if safe_sed_replace "$project_file" "s|<ProjectReference Include=\"[^\"]*$project_name\.csproj\" />|<PackageReference Include=\"$package_name\" Version=\"$version\" />|g"; then
+                    cleanup_backup "$project_file"
+                    log_success "Updated $project_file to use NuGet reference (v$version)"
+                    ((changes_made++))
+                else
+                    log_error "Failed to update $project_file"
+                    ((errors++))
+                fi
             else
                 log_info "$project_file already uses NuGet references or doesn't contain $package_name"
             fi
         done <<< "$target_projects"
     done <<< "$(jq -c '.packages[]' "$CONFIG_FILE")"
     
-    if [ $changes_made -eq 0 ]; then
+    if [ $errors -gt 0 ]; then
+        log_error "Completed with $errors error(s)"
+        return 1
+    elif [ $changes_made -eq 0 ]; then
         log_warning "No changes were needed - projects already use NuGet references"
     else
         log_success "Made $changes_made changes to use NuGet references"
     fi
+    
+    return 0
 }
 
 validate_configuration() {
