@@ -17,6 +17,10 @@ jobs:
   test-switch-references:
     runs-on: ubuntu-latest
     
+    env:
+      ACTIONS_RUNNER_DEBUG: true
+      ACTIONS_STEP_DEBUG: true
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -31,6 +35,11 @@ jobs:
         echo "Checking for required tools..."
         which jq && jq --version || echo "jq not found"
         which dotnet && dotnet --version || echo "dotnet not found"
+        which timeout && timeout --version || echo "timeout not found"
+        echo "System information:"
+        uname -a
+        echo "Environment variables:"
+        env | grep -E "(ACTIONS_|RUNNER_)" | sort
         echo "Verifying configuration file..."
         jq empty reference-config.json && echo "✅ Configuration file is valid JSON" || echo "❌ Configuration file is invalid"
       
@@ -47,9 +56,29 @@ jobs:
     - name: Show initial status
       run: |
         echo "=== Initial Reference Status ==="
+        echo "Current working directory: $(pwd)"
+        echo "Files in current directory:"
+        ls -la
+        echo "Script permissions:"
+        ls -la switch-references.sh
+        echo "Project files exist check:"
+        ls -la affolterNET.Web.*/
+        echo "Configuration file:"
+        cat reference-config.json
+        echo "Starting dotnet restore..."
         # First, ensure dotnet is working and do a restore
-        dotnet restore
-        ./switch-references.sh status
+        dotnet restore || { echo "FAILED: dotnet restore"; exit 1; }
+        echo "dotnet restore completed successfully"
+        echo "Starting switch-references.sh status with 60 second timeout..."
+        timeout 60 ./switch-references.sh status || { 
+          echo "FAILED: switch-references.sh status (exit code: $?)"; 
+          echo "Checking if process timed out...";
+          if [ $? -eq 124 ]; then
+            echo "ERROR: Script timed out after 60 seconds";
+          fi
+          exit 1; 
+        }
+        echo "switch-references.sh status completed successfully"
         
     - name: Test switch to NuGet references
       run: |

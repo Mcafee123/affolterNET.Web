@@ -4,14 +4,30 @@
 # Uses reference-config.json for configuration
 # Usage: ./switch-references.sh [local|nuget|status] [--config <file>] [--validate]
 
-set -e
+set -ex  # Enable both error exit and execution tracing
 
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
+
+# Debug logging functions
+log_debug() {
+    echo -e "${MAGENTA}[DEBUG] $1${NC}" >&2
+}
+
+log_command() {
+    echo -e "${MAGENTA}[CMD] Running: $1${NC}" >&2
+}
+
+log_exit_code() {
+    local cmd="$1"
+    local exit_code="$2"
+    echo -e "${MAGENTA}[EXIT] Command '$cmd' exited with code: $exit_code${NC}" >&2
+}
 
 # Default configuration file
 CONFIG_FILE="reference-config.json"
@@ -33,6 +49,23 @@ log_warning() {
 
 log_error() {
     echo -e "${RED}[ERROR] $1${NC}"
+}
+
+log_debug() {
+    echo -e "${YELLOW}[DEBUG] $1${NC}"
+}
+
+debug_command() {
+    local cmd="$1"
+    local description="$2"
+    log_debug "Executing: $description"
+    log_debug "Command: $cmd"
+    eval "$cmd" || { 
+        local exit_code=$?
+        log_error "FAILED: $description (exit code: $exit_code)"
+        return $exit_code
+    }
+    log_debug "SUCCESS: $description"
 }
 
 load_config() {
@@ -100,39 +133,71 @@ has_project_reference() {
     local project_file="$1"
     local project_name="$2"
     
+    log_debug "Checking project reference: $project_file for $project_name"
+    
     # First check the project file directly for ProjectReference (more reliable in CI)
+    log_debug "Searching for ProjectReference in $project_file"
     if grep -q "ProjectReference.*Include=\".*$project_name\.csproj\"" "$project_file"; then
+        log_debug "Found ProjectReference via grep"
         return 0
     fi
     
     # Fallback: Use dotnet list reference with timeout to check for project references
     # Parse output to look for the specific project file (basename matching)
-    local references=$(timeout 10 dotnet list "$project_file" reference 2>/dev/null)
-    if [ $? -eq 0 ] && [ -n "$references" ]; then
-        # Skip the header lines and check for project name in the paths
-        echo "$references" | tail -n +3 | grep -q "$project_name\.csproj"
-    else
+    log_debug "Using dotnet list reference as fallback for $project_file"
+    local references
+    references=$(timeout 10 dotnet list "$project_file" reference 2>/dev/null) || {
+        local exit_code=$?
+        log_debug "dotnet list reference failed with exit code: $exit_code"
         return 1
+    }
+    
+    if [ -n "$references" ]; then
+        log_debug "dotnet list reference output: $references"
+        # Skip the header lines and check for project name in the paths
+        if echo "$references" | tail -n +3 | grep -q "$project_name\.csproj"; then
+            log_debug "Found ProjectReference via dotnet list"
+            return 0
+        fi
     fi
+    
+    log_debug "No ProjectReference found for $project_name in $project_file"
+    return 1
 }
 
 has_package_reference() {
     local project_file="$1"
     local package_name="$2"
     
+    log_debug "Checking package reference: $project_file for $package_name"
+    
     # First check the project file directly for PackageReference
+    log_debug "Searching for PackageReference in $project_file"
     if grep -q "PackageReference.*Include=\"$package_name\"" "$project_file"; then
+        log_debug "Found PackageReference via grep"
         return 0
     fi
     
     # Fallback: Use dotnet list package with timeout to check for package references
     # This only works for packages that can be resolved
-    local packages=$(timeout 10 dotnet list "$project_file" package 2>/dev/null)
-    if [ $? -eq 0 ] && [ -n "$packages" ]; then
-        echo "$packages" | grep -q "^   > $package_name "
-    else
+    log_debug "Using dotnet list package as fallback for $project_file"
+    local packages
+    packages=$(timeout 10 dotnet list "$project_file" package 2>/dev/null) || {
+        local exit_code=$?
+        log_debug "dotnet list package failed with exit code: $exit_code"
         return 1
+    }
+    
+    if [ -n "$packages" ]; then
+        log_debug "dotnet list package output: $packages"
+        if echo "$packages" | grep -q "^   > $package_name "; then
+            log_debug "Found PackageReference via dotnet list"
+            return 0
+        fi
     fi
+    
+    log_debug "No PackageReference found for $package_name in $project_file"
+    return 1
 }
 
 get_package_version_from_project() {
@@ -302,17 +367,23 @@ show_current_references() {
     local total_local=0
     local total_nuget=0
     
+    log_debug "Starting to process packages from configuration"
+    
     # Process each package from configuration
     while IFS= read -r package; do
         local package_name=$(echo "$package" | jq -r '.name')
         local local_path=$(echo "$package" | jq -r '.local_path')
         local target_projects=$(echo "$package" | jq -r '.target_projects[]')
         
+        log_debug "Processing package: $package_name"
         echo "Package: $package_name"
         
         # Check each target project
         while IFS= read -r project_file; do
+            log_debug "Processing project file: $project_file"
+            
             if [ ! -f "$project_file" ]; then
+                log_debug "Project file not found: $project_file"
                 echo "  ❌ $project_file: FILE NOT FOUND"
                 continue
             fi
@@ -320,22 +391,31 @@ show_current_references() {
             local project_basename=$(basename "$project_file")
             local project_name=$(basename "$local_path" .csproj)
             
+            log_debug "Checking references for $project_basename (looking for $project_name)"
+            
             # Check for ProjectReference using dotnet helper
             if has_project_reference "$project_file" "$project_name"; then
+                log_debug "Found LOCAL project reference in $project_basename"
                 echo "  🔗 $project_basename: LOCAL project reference"
                 ((total_local++))
             elif has_package_reference "$project_file" "$package_name"; then
+                log_debug "Found NUGET package reference in $project_basename"
                 # Extract version using dotnet helper
                 local version=$(get_package_version_from_project "$project_file" "$package_name")
                 echo "  📦 $project_basename: NUGET reference (v$version)"
                 ((total_nuget++))
             else
+                log_debug "No reference found in $project_basename"
                 echo "  ❓ $project_basename: NO REFERENCE FOUND"
             fi
+            
+            log_debug "Completed processing $project_basename"
         done <<< "$target_projects"
         echo
+        log_debug "Completed processing package: $package_name"
     done <<< "$(jq -c '.packages[]' "$CONFIG_FILE")"
     
+    log_debug "Finished processing all packages"
     echo "Summary: $total_local local references, $total_nuget NuGet references"
     echo "================================================================================"
 }
