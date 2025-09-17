@@ -44,7 +44,7 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
         target.CrossOriginEmbedderPolicy = CrossOriginEmbedderPolicy;
         target.PermissionsPolicy = PermissionsPolicy;
         target.EnableHsts = EnableHsts;
-        target.UiDevServerUrl = UiDevServerUrl;
+        target.FrontendUrl = FrontendUrl;
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
             // Note: 'unsafe-inline' for styles is now controlled by AllowInlineStyles property
         }
 
-        UiDevServerUrl = string.Empty;
+        FrontendUrl = string.Empty;
     }
 
     /// <summary>
@@ -234,7 +234,7 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
     public bool EnableHsts { get; set; }
 
     /// <summary>
-    /// Dev Server Url for CSP configuration (e.g., "https://localhost:5173")
+    /// URL, where the frontend runs. This must be the dev server in development mode and the url of the bff in production.
     /// </summary>
-    public string UiDevServerUrl { get; set; }
+    public string FrontendUrl { get; set; }
 }

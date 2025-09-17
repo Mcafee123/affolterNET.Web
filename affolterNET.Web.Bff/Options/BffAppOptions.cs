@@ -4,7 +4,6 @@ using affolterNET.Web.Bff.Configuration;
 using affolterNET.Web.Core.Configuration;
 using affolterNET.Web.Core.Options;
 using affolterNET.Web.Core.Models;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,8 +14,11 @@ namespace affolterNET.Web.Bff.Options;
 /// </summary>
 public class BffAppOptions : CoreAppOptions
 {
+    private readonly AppSettings _appSettings;
+
     public BffAppOptions(AppSettings appSettings, IConfiguration config) : base(appSettings, config)
     {
+        _appSettings = appSettings;
         IsDev = appSettings.IsDev;
         AntiForgery = config.CreateFromConfig<BffAntiforgeryOptions>(appSettings);
         Bff = config.CreateFromConfig<BffOptions>(appSettings);
@@ -60,12 +62,12 @@ public class BffAppOptions : CoreAppOptions
 
         // Move config values to base types
         var baseActions = new ConfigureActions();
-        Action<SecurityHeadersOptions> configureDevUrl = sho =>
+        Action<SecurityHeadersOptions> configureUrl = sho =>
         {
-            sho.UiDevServerUrl = Bff.UiDevServerUrl;
+            sho.FrontendUrl = _appSettings.IsDev ? Bff.UiDevServerUrl : Bff.BackendUrl;
             sho.IdpHost = AuthProvider.AuthorityBase;
         };
-        baseActions.Add(configureDevUrl);
+        baseActions.Add(configureUrl);
         RunCoreActions(baseActions);
 
         // configure DI
