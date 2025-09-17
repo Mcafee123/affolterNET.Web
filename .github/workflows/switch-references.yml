@@ -12,9 +12,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Install jq
-      run: sudo apt-get update && sudo apt-get install -y jq
-      
+    - name: Check available XML tools
+      run: |
+        echo "Checking for XML tools..."
+        which xmllint && xmllint --version || echo "xmllint not found"
+        which xmlstarlet && xmlstarlet --version || echo "xmlstarlet not found"
+        which jq && jq --version || echo "jq not found"
+        
     - name: Make script executable
       run: chmod +x switch-references.sh
       
