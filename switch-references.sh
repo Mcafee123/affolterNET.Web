@@ -100,9 +100,14 @@ has_project_reference() {
     local project_file="$1"
     local project_name="$2"
     
-    # Use dotnet list reference to check for project references
+    # First check the project file directly for ProjectReference (more reliable in CI)
+    if grep -q "ProjectReference.*Include=\".*$project_name\.csproj\"" "$project_file"; then
+        return 0
+    fi
+    
+    # Fallback: Use dotnet list reference with timeout to check for project references
     # Parse output to look for the specific project file (basename matching)
-    local references=$(dotnet list "$project_file" reference 2>/dev/null)
+    local references=$(timeout 10 dotnet list "$project_file" reference 2>/dev/null)
     if [ $? -eq 0 ] && [ -n "$references" ]; then
         # Skip the header lines and check for project name in the paths
         echo "$references" | tail -n +3 | grep -q "$project_name\.csproj"
@@ -120,9 +125,9 @@ has_package_reference() {
         return 0
     fi
     
-    # Fallback: Use dotnet list package to check for package references
+    # Fallback: Use dotnet list package with timeout to check for package references
     # This only works for packages that can be resolved
-    local packages=$(dotnet list "$project_file" package 2>/dev/null)
+    local packages=$(timeout 10 dotnet list "$project_file" package 2>/dev/null)
     if [ $? -eq 0 ] && [ -n "$packages" ]; then
         echo "$packages" | grep -q "^   > $package_name "
     else
@@ -141,9 +146,9 @@ get_package_version_from_project() {
         return 0
     fi
     
-    # Fallback: Use dotnet list package to get version information
+    # Fallback: Use dotnet list package with timeout to get version information
     # This only works for packages that can be resolved
-    local version=$(dotnet list "$project_file" package 2>/dev/null | awk '/Top-level Package/,/^$/' | grep "^   > $package_name " | awk '{print $3}' | head -1)
+    local version=$(timeout 10 dotnet list "$project_file" package 2>/dev/null | awk '/Top-level Package/,/^$/' | grep "^   > $package_name " | awk '{print $3}' | head -1)
     echo "${version:-unknown}"
 }
 
