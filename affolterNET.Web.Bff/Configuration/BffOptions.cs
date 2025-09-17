@@ -12,7 +12,7 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public static string SectionName => "affolterNET.Web:BffOptions";
+    public static string SectionName => "affolterNET:Web:BffOptions";
 
     public static BffOptions CreateDefaults(AppSettings settings)
     {

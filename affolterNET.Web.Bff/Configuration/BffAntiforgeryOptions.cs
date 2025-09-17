@@ -12,7 +12,7 @@ public class BffAntiforgeryOptions: IConfigurableOptions<BffAntiforgeryOptions>
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public static string SectionName => "affolterNET.Web:Bff:Antiforgery";
+    public static string SectionName => "affolterNET:Web:Bff:Antiforgery";
 
     public static BffAntiforgeryOptions CreateDefaults(AppSettings settings)
     {
