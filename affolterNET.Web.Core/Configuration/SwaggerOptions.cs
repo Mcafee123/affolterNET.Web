@@ -9,7 +9,7 @@ public class SwaggerOptions: IConfigurableOptions<SwaggerOptions>
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public static string SectionName => "affolterNET.Web:Swagger";
+    public static string SectionName => "affolterNET:Web:Swagger";
 
     public static bool IsEmpty(SwaggerOptions options)
     {

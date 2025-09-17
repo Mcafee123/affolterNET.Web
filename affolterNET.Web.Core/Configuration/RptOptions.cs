@@ -12,7 +12,7 @@ public class RptOptions: IConfigurableOptions<RptOptions>
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public static string SectionName => "affolterNET.Web:Bff:Rpt";
+    public static string SectionName => "affolterNET:Web:Bff:Rpt";
 
     public static RptOptions CreateDefaults(AppSettings settings)
     {

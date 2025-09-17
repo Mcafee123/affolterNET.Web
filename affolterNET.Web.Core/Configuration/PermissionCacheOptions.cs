@@ -12,7 +12,7 @@ public class PermissionCacheOptions: IConfigurableOptions<PermissionCacheOptions
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public static string SectionName => "affolterNET.Web:PermissionCache";
+    public static string SectionName => "affolterNET:Web:PermissionCache";
 
     public static PermissionCacheOptions CreateDefaults(AppSettings settings)
     {

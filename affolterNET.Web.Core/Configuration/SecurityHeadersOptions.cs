@@ -11,7 +11,7 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public static string SectionName => "affolterNET.Web:SecurityHeaders";
+    public static string SectionName => "affolterNET:Web:SecurityHeaders";
 
     public static SecurityHeadersOptions CreateDefaults(AppSettings settings)
     {

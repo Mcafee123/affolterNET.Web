@@ -12,7 +12,7 @@ public class OidcOptions: IConfigurableOptions<OidcOptions>
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public static string SectionName => "affolterNET.Web:Oidc";
+    public static string SectionName => "affolterNET:Web:Oidc";
 
     public static OidcOptions CreateDefaults(AppSettings settings)
     {

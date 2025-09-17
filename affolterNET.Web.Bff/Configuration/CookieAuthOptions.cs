@@ -12,7 +12,7 @@ public class CookieAuthOptions: IConfigurableOptions<CookieAuthOptions>
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public static string SectionName => "affolterNET.Web:Cookie";
+    public static string SectionName => "affolterNET:Web:Cookie";
 
     public static CookieAuthOptions CreateDefaults(AppSettings settings)
     {

@@ -8,7 +8,7 @@ public class BffAuthOptions: IConfigurableOptions<BffAuthOptions>
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public static string SectionName => "affolterNET.Web:Auth:Options";
+    public static string SectionName => "affolterNET:Web:Auth:Options";
 
     public static BffAuthOptions CreateDefaults(AppSettings settings)
     {

@@ -11,7 +11,7 @@ public class ApiJwtBearerOptions: IConfigurableOptions<ApiJwtBearerOptions>
     /// <summary>
     /// Configuration section name for binding from appsettings.json
     /// </summary>
-    public static string SectionName => "affolterNET.Web:Api:JwtBearer";
+    public static string SectionName => "affolterNET:Web:Api:JwtBearer";
 
     public static ApiJwtBearerOptions CreateDefaults(AppSettings appSettings)
     {
