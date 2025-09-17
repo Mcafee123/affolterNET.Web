@@ -242,21 +242,62 @@ jobs:
       env:
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
 
+    - name: Create and push git tag
+      if: |
+        needs.build-and-test.outputs.should_publish == 'true' ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_nuget == 'true')
+      run: |
+        VERSION="${{ needs.build-and-test.outputs.version }}"
+        TAG_NAME="v$VERSION"
+        
+        echo "Creating tag: $TAG_NAME"
+        
+        # Configure git
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Create annotated tag with release message
+        git tag -a "$TAG_NAME" -m "Release $TAG_NAME
+
+        📦 NuGet Packages Published:
+        - affolterNET.Web.Core v$VERSION
+        - affolterNET.Web.Api v$VERSION  
+        - affolterNET.Web.Bff v$VERSION
+        
+        🔗 NuGet Gallery: https://www.nuget.org/profiles/affolterNET
+        
+        📋 Installation:
+        dotnet add package affolterNET.Web.Core --version $VERSION
+        dotnet add package affolterNET.Web.Api --version $VERSION
+        dotnet add package affolterNET.Web.Bff --version $VERSION"
+        
+        # Push tag to origin
+        git push origin "$TAG_NAME"
+        
+        echo "✅ Tag $TAG_NAME created and pushed to GitHub"
+        echo "🏷️ View tag: https://github.com/${{ github.repository }}/releases/tag/$TAG_NAME"
+
     - name: Create release summary
       run: |
         VERSION="${{ needs.build-and-test.outputs.version }}"
-        echo "## NuGet Packages Published" >> $GITHUB_STEP_SUMMARY
+        TAG_NAME="v$VERSION"
+        echo "## 🎉 NuGet Packages Published" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Version: $VERSION" >> $GITHUB_STEP_SUMMARY
+        echo "**Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
+        echo "**Tag:** [$TAG_NAME](https://github.com/${{ github.repository }}/releases/tag/$TAG_NAME)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Packages:" >> $GITHUB_STEP_SUMMARY
-        echo "- affolterNET.Web.Core" >> $GITHUB_STEP_SUMMARY
-        echo "- affolterNET.Web.Api" >> $GITHUB_STEP_SUMMARY
-        echo "- affolterNET.Web.Bff" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 Published Packages:" >> $GITHUB_STEP_SUMMARY
+        echo "- [affolterNET.Web.Core](https://www.nuget.org/packages/affolterNET.Web.Core/$VERSION)" >> $GITHUB_STEP_SUMMARY
+        echo "- [affolterNET.Web.Api](https://www.nuget.org/packages/affolterNET.Web.Api/$VERSION)" >> $GITHUB_STEP_SUMMARY
+        echo "- [affolterNET.Web.Bff](https://www.nuget.org/packages/affolterNET.Web.Bff/$VERSION)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Installation:" >> $GITHUB_STEP_SUMMARY
+        echo "### 🚀 Installation:" >> $GITHUB_STEP_SUMMARY
         echo '```bash' >> $GITHUB_STEP_SUMMARY
         echo "dotnet add package affolterNET.Web.Core --version $VERSION" >> $GITHUB_STEP_SUMMARY
         echo "dotnet add package affolterNET.Web.Api --version $VERSION" >> $GITHUB_STEP_SUMMARY
         echo "dotnet add package affolterNET.Web.Bff --version $VERSION" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔗 Links:" >> $GITHUB_STEP_SUMMARY
+        echo "- [View Release](https://github.com/${{ github.repository }}/releases/tag/$TAG_NAME)" >> $GITHUB_STEP_SUMMARY
+        echo "- [NuGet Profile](https://www.nuget.org/profiles/affolterNET)" >> $GITHUB_STEP_SUMMARY

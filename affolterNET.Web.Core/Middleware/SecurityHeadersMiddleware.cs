@@ -95,6 +95,15 @@ public class SecurityHeadersMiddleware(
 
         // Content-Security-Policy: Comprehensive CSP
         var csp = BuildContentSecurityPolicy(options, nonce);
+        
+        // Debug logging for CSP (remove in production)
+        Console.WriteLine($"[DEBUG] Generated CSP: {csp}");
+        Console.WriteLine($"[DEBUG] Custom directives count: {options.CustomCspDirectives.Count}");
+        foreach (var (key, value) in options.CustomCspDirectives)
+        {
+            Console.WriteLine($"[DEBUG] Custom directive: {key} = {value}");
+        }
+        
         headers.Append("Content-Security-Policy", csp);
     }
 
@@ -139,14 +148,35 @@ public class SecurityHeadersMiddleware(
         directives.Add($"script-src {scriptSrc}");
 
         // Style sources
-        var styleSrc = "'self'";
-        if (options.AllowInlineStyles)
-            styleSrc += " 'unsafe-inline'";
-        if (options.AllowedStyleSources.Count > 0)
-            styleSrc += " " + string.Join(" ", options.AllowedStyleSources);
-        if (!string.IsNullOrEmpty(options.UiDevServerUrl))
-            styleSrc += $" {options.UiDevServerUrl}";
-        directives.Add($"style-src {styleSrc}");
+        Console.WriteLine($"[DEBUG] Checking for custom style-src directive...");
+        Console.WriteLine($"[DEBUG] CustomCspDirectives contains style-src: {options.CustomCspDirectives.ContainsKey("style-src")}");
+        
+        if (!options.CustomCspDirectives.ContainsKey("style-src"))
+        {
+            var styleSrc = "'self'";
+            if (options.AllowInlineStyles)
+            {
+                styleSrc += " 'unsafe-inline'";
+                Console.WriteLine($"[DEBUG] Adding 'unsafe-inline' for development");
+            }
+            else if (options.AllowedStyleHashes.Count > 0)
+            {
+                // Add specific style hashes (e.g., for Swagger) and 'unsafe-hashes' directive
+                styleSrc += " " + string.Join(" ", options.AllowedStyleHashes) + " 'unsafe-hashes'";
+                Console.WriteLine($"[DEBUG] Adding style hashes: {string.Join(" ", options.AllowedStyleHashes)}");
+            }
+            
+            if (options.AllowedStyleSources.Count > 0)
+                styleSrc += " " + string.Join(" ", options.AllowedStyleSources);
+            if (!string.IsNullOrEmpty(options.UiDevServerUrl))
+                styleSrc += $" {options.UiDevServerUrl}";
+            Console.WriteLine($"[DEBUG] Final style-src: {styleSrc}");
+            directives.Add($"style-src {styleSrc}");
+        }
+        else
+        {
+            Console.WriteLine($"[DEBUG] Using custom style-src directive");
+        }
 
         // Connect sources (for API calls, WebSocket, etc.)
         var connectSrc = "'self'";
