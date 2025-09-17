@@ -2,7 +2,7 @@ name: Build and Publish NuGet Packages
 
 on:
   push:
-    branches: [ main ]
+    branches: [ develop, main ]
     paths:
       - '**/*.csproj'
       - '**/*.cs'
@@ -42,6 +42,7 @@ jobs:
     
     outputs:
       version: ${{ steps.version.outputs.version }}
+      should_publish: ${{ steps.publish_check.outputs.should_publish }}
       
     steps:
     - name: Checkout code
@@ -66,8 +67,8 @@ jobs:
         elif [ "${{ github.event_name }}" == "release" ]; then
           echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
         else
-          # Auto-increment patch version for main branch pushes
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          # Auto-increment patch version for develop branch pushes
+          if [ "${{ github.ref }}" == "refs/heads/develop" ]; then
             # Get current version from project file
             CURRENT_VERSION=$(grep -oE '<Version>[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?</Version>' affolterNET.Web.Core/affolterNET.Web.Core.csproj | sed -E 's/<\/?Version>//g')
             echo "Current version: $CURRENT_VERSION"
@@ -110,43 +111,34 @@ jobs:
         echo "Updated project versions:"
         find . -name "*.csproj" -exec grep -H "<Version>" {} \;
 
+    - name: Check if should publish
+      id: publish_check
+      run: |
+        if [ "${{ github.ref }}" == "refs/heads/main" ] && [ "${{ github.event_name }}" == "push" ]; then
+          echo "should_publish=true" >> $GITHUB_OUTPUT
+          echo "Will publish packages (main branch push)"
+        else
+          echo "should_publish=false" >> $GITHUB_OUTPUT
+          echo "Will not publish packages (not main branch push)"
+        fi
+
     - name: Commit version changes
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push' && github.event.inputs.version == ''
+      if: github.ref == 'refs/heads/develop' && github.event_name == 'push' && github.event.inputs.version == ''
       run: |
         NEW_VERSION="${{ steps.version.outputs.version }}"
-        BRANCH_NAME="release/v$NEW_VERSION"
         
-        # Delete existing branch if it exists (both local and remote)
-        git branch -D "$BRANCH_NAME" 2>/dev/null || true
-        git push origin --delete "$BRANCH_NAME" 2>/dev/null || true
-        
-        # Create fresh release branch
-        git checkout -b "$BRANCH_NAME"
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         
-        # Add and commit changes
+        # Add and commit changes directly to develop
         git add *.csproj */*.csproj
         if git diff --staged --quiet; then
           echo "No version changes to commit"
         else
           git commit -m "chore: bump version to $NEW_VERSION"
-          git push origin "$BRANCH_NAME"
-          
-          # Close existing PR if it exists
-          gh pr close "$BRANCH_NAME" 2>/dev/null || true
-          
-          # Create pull request
-          gh pr create \
-            --title "Release v$NEW_VERSION" \
-            --body "Automated version bump to v$NEW_VERSION" \
-            --base main \
-            --head "$BRANCH_NAME" \
-            --label "release"
+          git push origin develop
+          echo "Version bumped to $NEW_VERSION on develop branch"
         fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build projects
       run: |
@@ -174,7 +166,11 @@ jobs:
   pack-and-publish:
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
+    if: |
+      github.event_name != 'pull_request' && 
+      (needs.build-and-test.outputs.should_publish == 'true' || 
+       github.event_name == 'release' || 
+       github.event_name == 'workflow_dispatch')
     
     steps:
     - name: Checkout code
@@ -258,7 +254,7 @@ jobs:
 
     - name: Publish to NuGet.org
       if: |
-        (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+        needs.build-and-test.outputs.should_publish == 'true' ||
         (github.event_name == 'release' && github.event.action == 'published') || 
         (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_nuget == 'true')
       run: |
