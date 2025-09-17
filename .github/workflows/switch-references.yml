@@ -1,0 +1,37 @@
+name: Switch References Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-switch-references:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install -y jq
+      
+    - name: Make script executable
+      run: chmod +x switch-references.sh
+      
+    - name: Show current status
+      run: ./switch-references.sh status
+      
+    - name: Test switch to NuGet references
+      run: ./switch-references.sh nuget
+      
+    - name: Show status after NuGet switch
+      run: ./switch-references.sh status
+      
+    - name: Test switch back to local references
+      run: ./switch-references.sh local
+      
+    - name: Show final status
+      run: ./switch-references.sh status
+      
+    - name: Validate configuration
+      run: ./switch-references.sh validate
