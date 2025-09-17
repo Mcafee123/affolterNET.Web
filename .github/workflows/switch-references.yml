@@ -17,10 +17,6 @@ jobs:
   test-switch-references:
     runs-on: ubuntu-latest
     
-    env:
-      ACTIONS_RUNNER_DEBUG: true
-      ACTIONS_STEP_DEBUG: true
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -56,29 +52,9 @@ jobs:
     - name: Show initial status
       run: |
         echo "=== Initial Reference Status ==="
-        echo "Current working directory: $(pwd)"
-        echo "Files in current directory:"
-        ls -la
-        echo "Script permissions:"
-        ls -la switch-references.sh
-        echo "Project files exist check:"
-        ls -la affolterNET.Web.*/
-        echo "Configuration file:"
-        cat reference-config.json
-        echo "Starting dotnet restore..."
         # First, ensure dotnet is working and do a restore
-        dotnet restore || { echo "FAILED: dotnet restore"; exit 1; }
-        echo "dotnet restore completed successfully"
-        echo "Starting switch-references.sh status with 60 second timeout..."
-        timeout 60 ./switch-references.sh status || { 
-          echo "FAILED: switch-references.sh status (exit code: $?)"; 
-          echo "Checking if process timed out...";
-          if [ $? -eq 124 ]; then
-            echo "ERROR: Script timed out after 60 seconds";
-          fi
-          exit 1; 
-        }
-        echo "switch-references.sh status completed successfully"
+        dotnet restore --verbosity quiet
+        ./switch-references.sh status
         
     - name: Test switch to NuGet references
       run: |

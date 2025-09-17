@@ -4,7 +4,7 @@
 # Uses reference-config.json for configuration
 # Usage: ./switch-references.sh [local|nuget|status] [--config <file>] [--validate]
 
-set -ex  # Enable both error exit and execution tracing
+set -e  # Enable error exit (but not execution tracing)
 
 # Colors for output
 RED='\033[0;31m'
@@ -245,10 +245,10 @@ switch_to_local() {
                 if sed -i.bak "s|<PackageReference Include=\"$package_name\"[^>]*/>|<ProjectReference Include=\"$relative_local_path\" />|g" "$project_file"; then
                     rm -f "${project_file}.bak"
                     log_success "Updated $project_file to use local reference"
-                    ((changes_made++))
+                    changes_made=$((changes_made + 1))
                 else
                     log_error "Failed to update $project_file"
-                    ((errors++))
+                    errors=$((errors + 1))
                 fi
             fi
         done <<< "$target_projects"
@@ -281,7 +281,7 @@ switch_to_nuget() {
         local version=$(get_package_version "$package_name")
         if [ $? -ne 0 ]; then
             log_error "Failed to get version for $package_name, skipping..."
-            ((errors++))
+            errors=$((errors + 1))
             continue
         fi
         
@@ -300,10 +300,10 @@ switch_to_nuget() {
                 if sed -i.bak "s|<ProjectReference Include=\"[^\"]*$project_name\.csproj\" />|<PackageReference Include=\"$package_name\" Version=\"$version\" />|g" "$project_file"; then
                     rm -f "${project_file}.bak"
                     log_success "Updated $project_file to use NuGet reference (v$version)"
-                    ((changes_made++))
+                    changes_made=$((changes_made + 1))
                 else
                     log_error "Failed to update $project_file"
-                    ((errors++))
+                    errors=$((errors + 1))
                 fi
             fi
         done <<< "$target_projects"
@@ -338,14 +338,14 @@ validate_configuration() {
         fi
         if [ ! -f "$resolved_local_path" ]; then
             log_error "Local project file not found: $resolved_local_path"
-            ((validation_errors++))
+            validation_errors=$((validation_errors + 1))
         fi
         
         # Check each target project exists
         while IFS= read -r project_file; do
             if [ ! -f "$project_file" ]; then
                 log_error "Target project file not found: $project_file"
-                ((validation_errors++))
+                validation_errors=$((validation_errors + 1))
             fi
         done <<< "$target_projects"
     done <<< "$(jq -c '.packages[]' "$CONFIG_FILE")"
