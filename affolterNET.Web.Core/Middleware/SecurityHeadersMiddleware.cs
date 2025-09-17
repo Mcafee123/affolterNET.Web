@@ -143,8 +143,8 @@ public class SecurityHeadersMiddleware(
         var scriptSrc = "'self'";
         if (options.AllowedScriptSources.Count > 0)
             scriptSrc += " " + string.Join(" ", options.AllowedScriptSources);
-        if (!string.IsNullOrEmpty(options.UiDevServerUrl))
-            scriptSrc += $" {options.UiDevServerUrl}";
+        if (!string.IsNullOrEmpty(options.FrontendUrl))
+            scriptSrc += $" {options.FrontendUrl}";
         directives.Add($"script-src {scriptSrc}");
 
         // Style sources
@@ -168,8 +168,8 @@ public class SecurityHeadersMiddleware(
             
             if (options.AllowedStyleSources.Count > 0)
                 styleSrc += " " + string.Join(" ", options.AllowedStyleSources);
-            if (!string.IsNullOrEmpty(options.UiDevServerUrl))
-                styleSrc += $" {options.UiDevServerUrl}";
+            if (!string.IsNullOrEmpty(options.FrontendUrl))
+                styleSrc += $" {options.FrontendUrl}";
             Console.WriteLine($"[DEBUG] Final style-src: {styleSrc}");
             directives.Add($"style-src {styleSrc}");
         }
@@ -184,12 +184,12 @@ public class SecurityHeadersMiddleware(
             connectSrc += " " + string.Join(" ", options.AllowedConnectSources);
         if (!string.IsNullOrEmpty(options.IdpHost))
             connectSrc += $" {options.IdpHost}";
-        if (!string.IsNullOrEmpty(options.UiDevServerUrl))
+        if (!string.IsNullOrEmpty(options.FrontendUrl))
         {
-            connectSrc += $" {options.UiDevServerUrl}";
+            connectSrc += $" {options.FrontendUrl}";
             // Also add WebSocket variant for Vite HMR
-            var wsUrl = options.UiDevServerUrl.Replace("http://", "ws://").Replace("https://", "wss://");
-            if (wsUrl != options.UiDevServerUrl)
+            var wsUrl = options.FrontendUrl.Replace("http://", "ws://").Replace("https://", "wss://");
+            if (wsUrl != options.FrontendUrl)
                 connectSrc += $" {wsUrl}";
         }
         directives.Add($"connect-src {connectSrc}");
