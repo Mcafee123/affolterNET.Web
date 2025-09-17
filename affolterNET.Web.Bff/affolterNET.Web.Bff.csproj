@@ -7,9 +7,18 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>affolterNET.Web.Bff</PackageId>
-    <Version>0.1.7</Version>
+    <Version>0.1.8</Version>
     <Authors>affolterNET</Authors>
     <Description>BFF authentication components with Duende BFF integration for affolterNET applications</Description>
+    
+    <!-- NuGet Package Metadata -->
+    <PackageProjectUrl>https://github.com/Mcafee123/affolterNET.Web</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Mcafee123/affolterNET.Web.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>authentication;authorization;asp.net-core;bff;yarp;reverse-proxy;duende</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>See https://github.com/Mcafee123/affolterNET.Web/commits for recent changes.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +27,10 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
