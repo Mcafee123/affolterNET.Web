@@ -397,13 +397,13 @@ show_current_references() {
             if has_project_reference "$project_file" "$project_name"; then
                 log_debug "Found LOCAL project reference in $project_basename"
                 echo "  🔗 $project_basename: LOCAL project reference"
-                ((total_local++))
+                total_local=$((total_local + 1))
             elif has_package_reference "$project_file" "$package_name"; then
                 log_debug "Found NUGET package reference in $project_basename"
                 # Extract version using dotnet helper
                 local version=$(get_package_version_from_project "$project_file" "$package_name")
                 echo "  📦 $project_basename: NUGET reference (v$version)"
-                ((total_nuget++))
+                total_nuget=$((total_nuget + 1))
             else
                 log_debug "No reference found in $project_basename"
                 echo "  ❓ $project_basename: NO REFERENCE FOUND"
