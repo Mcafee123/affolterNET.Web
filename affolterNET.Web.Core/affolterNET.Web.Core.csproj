@@ -7,9 +7,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>affolterNET.Web.Core</PackageId>
-    <Version>0.1.14</Version>
+    <Version>0.1.16</Version>
     <Authors>affolterNET</Authors>
-    <Description>Core authentication and authorization components for affolterNET applications</Description>
+    <Description>Core authentication and authorization components for web applications</Description>
     
     <!-- NuGet Package Metadata -->
     <PackageProjectUrl>https://github.com/Mcafee123/affolterNET.Web</PackageProjectUrl>
