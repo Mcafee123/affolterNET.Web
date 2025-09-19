@@ -10,7 +10,7 @@ This library collection provides flexible authentication and authorization modes
 |---------|-------|-------------|
 | **affolterNET.Web.Core** | [![NuGet](https://img.shields.io/nuget/v/affolterNET.Web.Core.svg)](https://www.nuget.org/packages/affolterNET.Web.Core/) | Core authentication and authorization components |
 | **affolterNET.Web.Api** | [![NuGet](https://img.shields.io/nuget/v/affolterNET.Web.Api.svg)](https://www.nuget.org/packages/affolterNET.Web.Api/) | API authentication components |
-| **affolterNET.Web.Bff** | [![NuGet](https://img.shields.io/nuget/v/affolterNET.Web.Bff.svg)](https://www.nuget.org/packages/affolterNET.Web.Bff/) | BFF authentication with Duende BFF integration |
+| **affolterNET.Web.Bff** | [![NuGet](https://img.shields.io/nuget/v/affolterNET.Web.Bff.svg)](https://www.nuget.org/packages/affolterNET.Web.Bff/) | BFF authentication with YARP reverse proxy integration |
 
 ### Installation
 
