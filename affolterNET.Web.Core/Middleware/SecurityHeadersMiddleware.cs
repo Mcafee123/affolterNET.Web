@@ -159,7 +159,9 @@ public class SecurityHeadersMiddleware(
                 styleSrc += " 'unsafe-inline'";
                 Console.WriteLine($"[DEBUG] Adding 'unsafe-inline' for development");
             }
-            else if (options.AllowedStyleHashes.Count > 0)
+            
+            // Always add style hashes if they exist (for both dev and prod)
+            if (options.AllowedStyleHashes.Count > 0)
             {
                 // Add specific style hashes (e.g., for Swagger) and 'unsafe-hashes' directive
                 styleSrc += " " + string.Join(" ", options.AllowedStyleHashes) + " 'unsafe-hashes'";
