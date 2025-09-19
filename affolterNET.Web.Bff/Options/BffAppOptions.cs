@@ -79,6 +79,12 @@ public class BffAppOptions : CoreAppOptions
         
         // Core configuration
         ConfigureCoreDi(services);
+        
+        // checks:
+        if (string.IsNullOrWhiteSpace(Bff.BackendUrl))
+        {
+            throw new InvalidOperationException("BffOptions.BackendUrl must be set to the backend BFF URL");
+        }
     }
 
     /// <summary>
