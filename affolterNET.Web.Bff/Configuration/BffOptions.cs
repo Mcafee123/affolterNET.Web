@@ -59,7 +59,10 @@ public class BffOptions: IConfigurableOptions<BffOptions>
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     {
         AuthMode = settings.AuthMode;
-        BackendUrl = "https://localhost:7291";
+        
+        // Check for environment variable first, then fall back to default
+        BackendUrl = "";
+        
         ApiRoutePrefixes = ["/api", "/bff"];
         EnableApiNotFound = true;
         EnableAntiforgery = true;
