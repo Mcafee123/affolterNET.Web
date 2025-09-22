@@ -27,7 +27,7 @@ public class AuthTransform(IOptionsMonitor<BffOptions> bffOptions, ILogger<AuthT
 
     public void Apply(TransformBuilderContext context)
     {
-        var uiDevServer = bffOptions.CurrentValue.UiDevServerUrl;
+        var uiDevServer = bffOptions.CurrentValue.FrontendUrl;
         
         context.AddRequestTransform(async reqTransformContext =>
         {

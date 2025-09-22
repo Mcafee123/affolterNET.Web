@@ -1,9 +1,8 @@
+using System.Linq.Expressions;
 using affolterNET.Web.Core.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace affolterNET.Web.Core.Options;
 
@@ -82,6 +81,28 @@ public static class OptionsExtensions
         // Add the properties at the final level
         var finalKey = parts[^1];
         current[finalKey] = option.GetPublicProperties();
+    }
+    
+    /// <summary>
+    /// Check options for null or whitespace and return error string if invalid
+    /// </summary>
+    /// <param name="options"></param>
+    /// <param name="propertyExpression"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static string CheckNullOrWhitespace<T>(this T options, Expression<Func<T, string>> propertyExpression) 
+        where T: class, IConfigurableOptions<T>
+    {
+        var memberExpression = (MemberExpression)propertyExpression.Body;
+        var propertyName = memberExpression.Member.Name;
+        var compiledExpression = propertyExpression.Compile();
+        var value = compiledExpression(options);
+    
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return $"{propertyName} must be provided: {T.SectionName.Replace(":", "__")}__{propertyName}";
+        }
+        return string.Empty;
     }
     
     /// <summary>

@@ -22,6 +22,12 @@ public class BffAppOptions : CoreAppOptions
         IsDev = appSettings.IsDev;
         AntiForgery = config.CreateFromConfig<BffAntiforgeryOptions>(appSettings);
         Bff = config.CreateFromConfig<BffOptions>(appSettings);
+        if (string.IsNullOrWhiteSpace(Bff.FrontendUrl))
+        {
+            // common scenario for bff applications - only dev setups have differences here
+            Bff.FrontendUrl = Bff.BackendUrl;
+        }
+
         CookieAuth = config.CreateFromConfig<CookieAuthOptions>(appSettings);
         Rpt = config.CreateFromConfig<RptOptions>(appSettings);
         BffAuth = config.CreateFromConfig<BffAuthOptions>(appSettings);
@@ -64,7 +70,7 @@ public class BffAppOptions : CoreAppOptions
         var baseActions = new ConfigureActions();
         Action<SecurityHeadersOptions> configureUrl = sho =>
         {
-            sho.FrontendUrl = _appSettings.IsDev ? Bff.UiDevServerUrl : Bff.BackendUrl;
+            sho.FrontendUrl = Bff.FrontendUrl;
             sho.IdpHost = AuthProvider.AuthorityBase;
         };
         baseActions.Add(configureUrl);
@@ -76,15 +82,9 @@ public class BffAppOptions : CoreAppOptions
         Bff.ConfigureDi(services);
         CookieAuth.ConfigureDi(services);
         Rpt.ConfigureDi(services);
-        
+
         // Core configuration
         ConfigureCoreDi(services);
-        
-        // checks:
-        if (string.IsNullOrWhiteSpace(Bff.BackendUrl))
-        {
-            throw new InvalidOperationException("BffOptions.BackendUrl must be set to the backend BFF URL");
-        }
     }
 
     /// <summary>
@@ -110,5 +110,27 @@ public class BffAppOptions : CoreAppOptions
         };
 
         return JsonSerializer.Serialize(configDict, options);
+    }
+
+    public void ValidateConfiguration()
+    {
+        var errors = new List<string>
+        {
+            AuthProvider.CheckNullOrWhitespace(x => x.AuthorityBase),
+            AuthProvider.CheckNullOrWhitespace(x => x.Realm),
+            AuthProvider.CheckNullOrWhitespace(x => x.ClientId),
+            AuthProvider.CheckNullOrWhitespace(x => x.ClientSecret),
+            BffAuth.CheckNullOrWhitespace(x => x.CallbackPath),
+            BffAuth.CheckNullOrWhitespace(x => x.SignoutCallback),
+            BffAuth.CheckNullOrWhitespace(x => x.PostLogoutRedirectUri),
+            BffAuth.CheckNullOrWhitespace(x => x.RedirectUri),
+            Bff.CheckNullOrWhitespace(x => x.BackendUrl)
+        };
+
+        var realErrors = errors.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+        if (realErrors.Any())
+        {
+            throw new ApplicationException("Invalid BffAppOptions configuration: \n" + string.Join("\n", realErrors));
+        }
     }
 }

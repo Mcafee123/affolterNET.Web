@@ -24,23 +24,17 @@ public class BffOptions: IConfigurableOptions<BffOptions>
         options.ApiRoutePrefixes = ApiRoutePrefixes;
         options.AuthMode = AuthMode;
         options.BackendUrl = BackendUrl;
-        // options.BackchannelLogoutAllUserSessions = BackchannelLogoutAllUserSessions;
+        options.FrontendUrl = FrontendUrl;
         options.ConfigureCustomMiddleware = ConfigureCustomMiddleware;
         options.EnableApiNotFound = EnableApiNotFound;
         options.EnableAntiforgery = EnableAntiforgery;
         options.EnableHttpsRedirection = EnableHttpsRedirection;
         options.EnableNoUnauthorizedRedirect = EnableNoUnauthorizedRedirect;
         options.EnableRptTokens = EnableRptTokens;
-        // options.EnableSessionManagement = EnableSessionManagement;
         options.EnableStaticFiles = EnableStaticFiles;
         options.EnableTokenRefresh = EnableTokenRefresh;
-        // options.EnableYarp = EnableYarp;
         options.ErrorPath = ErrorPath;
         options.FallbackPage = FallbackPage;
-        options.UiDevServerUrl = UiDevServerUrl;
-        // options.ManagementBasePath = ManagementBasePath;
-        // options.RequireLogoutSessionId = RequireLogoutSessionId;
-        // options.RevokeRefreshTokenOnLogout = RevokeRefreshTokenOnLogout;
     }
 
     /// <summary>
@@ -59,7 +53,6 @@ public class BffOptions: IConfigurableOptions<BffOptions>
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     {
         AuthMode = settings.AuthMode;
-        BackendUrl = "";        
         ApiRoutePrefixes = ["/api", "/bff"];
         EnableApiNotFound = true;
         EnableAntiforgery = true;
@@ -70,14 +63,17 @@ public class BffOptions: IConfigurableOptions<BffOptions>
         EnableTokenRefresh = true;
         ErrorPath = "/Error";
         FallbackPage = "/_Host";
-        // EnableSessionManagement = true;
-        // ManagementBasePath = "/bff";
-        // RequireLogoutSessionId = false;
-        // RevokeRefreshTokenOnLogout = true;
-        // BackchannelLogoutAllUserSessions = false;
     }
 
+    /// <summary>
+    /// Backend URL - url of the BFF application
+    /// </summary>
     public string BackendUrl { get; set; }
+    
+    /// <summary>
+    /// Frontend URL (same as backend url for production build)
+    /// </summary>
+    public string FrontendUrl { get; set; }
     
     /// <summary>
     /// API route prefix for handling API-specific behavior
@@ -88,12 +84,6 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// Authentication mode for the BFF (default: None)
     /// </summary>
     public AuthenticationMode AuthMode { get; private set; }
-
-    /// <summary>
-    /// Whether to logout all user sessions on backchannel logout
-    /// </summary>
-    [Obsolete("not used at the moment")]
-    public bool BackchannelLogoutAllUserSessions { get; set; }
 
     /// <summary>
     /// Configuration action for custom middleware - called before routing but after authentication
@@ -126,12 +116,6 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     public bool EnableRptTokens { get; set; }
 
     /// <summary>
-    /// Whether to enable session management
-    /// </summary>
-    [Obsolete("not used at the moment")]
-    public bool EnableSessionManagement { get; set; }
-
-    /// <summary>
     /// Whether to enable static files
     /// </summary>
     public bool EnableStaticFiles { get; set; }
@@ -142,12 +126,6 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     public bool EnableTokenRefresh { get; set; }
 
     /// <summary>
-    /// Whether to enable YARP reverse proxy
-    /// </summary>
-    [Obsolete("not used at the moment")]
-    public bool EnableYarp { get; set; }
-
-    /// <summary>
     /// Error page path
     /// </summary>
     public string ErrorPath { get; set; }
@@ -156,28 +134,4 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// Fallback page for SPA routing
     /// </summary>
     public string? FallbackPage { get; set; }
-
-    /// <summary>
-    /// Base path for BFF management endpoints
-    /// </summary>
-    [Obsolete("not used at the moment")]
-    public string ManagementBasePath { get; set; }
-    
-    /// <summary>
-    /// Whether to require logout session ID
-    /// </summary>
-    [Obsolete("not used at the moment")]
-    public bool RequireLogoutSessionId { get; set; }
-
-    /// <summary>
-    /// Whether to revoke refresh tokens on logout
-    /// </summary>
-    [Obsolete("not used at the moment")]
-    public bool RevokeRefreshTokenOnLogout { get; set; }
-    
-    /// <summary>
-    /// UI development server URL for CSP configuration (e.g., "https://localhost:5173")
-    /// Used to automatically configure Content Security Policy for frontend dev servers
-    /// </summary>
-    public string UiDevServerUrl { get; set; }
 }
