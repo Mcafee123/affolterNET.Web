@@ -14,7 +14,7 @@ public class LocalSecretsConfigurationProvider(string secretsPath) : Configurati
         {
             var json = File.ReadAllText(secretsPath);
             var secrets = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
-            
+
             if (secrets != null)
             {
                 Data = FlattenJson(secrets);
@@ -30,11 +30,11 @@ public class LocalSecretsConfigurationProvider(string secretsPath) : Configurati
     private IDictionary<string, string?> FlattenJson(Dictionary<string, object> json, string prefix = "")
     {
         var result = new Dictionary<string, string>();
-        
+
         foreach (var kvp in json)
         {
             var key = string.IsNullOrEmpty(prefix) ? kvp.Key : $"{prefix}:{kvp.Key}";
-            
+
             if (kvp.Value is JsonElement element)
             {
                 if (element.ValueKind == JsonValueKind.Object)
@@ -44,7 +44,12 @@ public class LocalSecretsConfigurationProvider(string secretsPath) : Configurati
                     {
                         var flattened = FlattenJson(nested, key);
                         foreach (var item in flattened)
-                            result[item.Key] = item.Value;
+                        {
+                            if (item.Value != null)
+                            {
+                                result[item.Key] = item.Value;
+                            }
+                        }
                     }
                 }
                 else
@@ -57,7 +62,7 @@ public class LocalSecretsConfigurationProvider(string secretsPath) : Configurati
                 result[key] = kvp.Value.ToString()!;
             }
         }
-        
+
         return result;
     }
 }

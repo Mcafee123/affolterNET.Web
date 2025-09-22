@@ -217,6 +217,88 @@ get_package_version_from_project() {
     echo "${version:-unknown}"
 }
 
+# Pages management functions for affolterNET.Web.Bff
+copy_bff_pages() {
+    local package_name="$1"
+    local local_path="$2"
+    local target_projects="$3"
+    
+    log_info "Copying Pages from $package_name library..."
+    
+    # Get the source Pages directory from the library project
+    local library_dir=$(dirname "$local_path")
+    local source_pages="$library_dir/Pages"
+    
+    # Process each target project to copy Pages
+    while IFS= read -r project_file; do
+        if [ ! -f "$project_file" ]; then
+            log_warning "Target project file not found: $project_file"
+            continue
+        fi
+        
+        # Get target Pages directory relative to project file
+        local project_dir=$(dirname "$project_file")
+        local target_pages="$project_dir/Pages"
+        
+        # Check if source Pages directory exists
+        if [ ! -d "$source_pages" ]; then
+            log_warning "Source Pages directory not found: $source_pages"
+            continue
+        fi
+        
+        # Create target Pages directory if it doesn't exist
+        if [ ! -d "$target_pages" ]; then
+            mkdir -p "$target_pages"
+            log_success "Created Pages directory: $target_pages"
+        fi
+        
+        # Copy all files from source to target
+        if cp -r "$source_pages"/* "$target_pages"/; then
+            log_success "Copied Pages from $package_name to $(basename "$project_file")"
+        else
+            log_error "Failed to copy Pages to $(basename "$project_file")"
+            return 1
+        fi
+    done <<< "$target_projects"
+    
+    log_info "Pages are now available for local development"
+}
+
+remove_bff_pages() {
+    local package_name="$1"
+    local target_projects="$2"
+    
+    log_info "Removing copied Pages from $package_name consuming projects..."
+    
+    # Process each target project to remove Pages
+    while IFS= read -r project_file; do
+        if [ ! -f "$project_file" ]; then
+            log_warning "Target project file not found: $project_file"
+            continue
+        fi
+        
+        # Get target Pages directory relative to project file
+        local project_dir=$(dirname "$project_file")
+        local target_pages="$project_dir/Pages"
+        
+        # Check if target Pages directory exists
+        if [ ! -d "$target_pages" ]; then
+            log_info "No Pages directory to remove in $(basename "$project_file")"
+            continue
+        fi
+        
+        # Remove the Pages directory
+        if rm -rf "$target_pages"; then
+            log_success "Removed copied Pages from $(basename "$project_file")"
+        else
+            log_error "Failed to remove Pages from $(basename "$project_file")"
+            return 1
+        fi
+    done <<< "$target_projects"
+    
+    log_info "Pages will now be served from NuGet package"
+}
+
 switch_to_local() {
     log_info "Switching to local project references..."
     local changes_made=0
@@ -252,6 +334,11 @@ switch_to_local() {
                 fi
             fi
         done <<< "$target_projects"
+        
+        # Special handling for affolterNET.Web.Bff: copy Pages for local development
+        if [ "$package_name" == "affolterNET.Web.Bff" ]; then
+            copy_bff_pages "$package_name" "$local_path" "$target_projects" || errors=$((errors + 1))
+        fi
     done <<< "$(jq -c '.packages[]' "$CONFIG_FILE")"
     
     if [ $errors -gt 0 ]; then
@@ -307,6 +394,11 @@ switch_to_nuget() {
                 fi
             fi
         done <<< "$target_projects"
+        
+        # Special handling for affolterNET.Web.Bff: remove copied Pages when switching to NuGet
+        if [ "$package_name" == "affolterNET.Web.Bff" ]; then
+            remove_bff_pages "$package_name" "$target_projects" || errors=$((errors + 1))
+        fi
     done <<< "$(jq -c '.packages[]' "$CONFIG_FILE")"
     
     if [ $errors -gt 0 ]; then

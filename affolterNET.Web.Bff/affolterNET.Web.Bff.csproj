@@ -39,4 +39,17 @@
     <PackageReference Include="Yarp.ReverseProxy" Version="2.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Pages/**/*.cshtml">
+      <PackagePath>contentFiles/cs/any/Pages</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <BuildAction>Content</BuildAction>
+    </Content>
+    <Content Include="Pages/**/*.cshtml.cs">
+      <PackagePath>contentFiles/cs/any/Pages</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <BuildAction>Content</BuildAction>
+    </Content>
+  </ItemGroup>
+
 </Project>

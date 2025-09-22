@@ -1,0 +1,36 @@
+﻿@page "/"
+@namespace affolterNET.Web.Bff.Pages
+@model affolterNET.Web.Bff.Pages._HostModel
+@using affolterNET.Web.Core.Middleware
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = null;
+
+    var source = "";
+    if (Model.IsDev)
+    {
+        var httpClient = new HttpClient();
+        source = await httpClient.GetStringAsync($"{Model.FrontendUrl}/index.html");
+    }
+    else
+    {
+        source = System.IO.File.ReadAllText($"{System.IO.Directory.GetCurrentDirectory()}{@"/wwwroot/index.html"}");
+    }
+
+    var nonce = HttpContext.GetNonce();
+
+    // The nonce is passed to the client through the HTML to avoid sync issues between tabs
+    source = source.Replace("**PLACEHOLDER_NONCE_SERVER**", nonce);
+
+    var nonceScript = $"<script nonce=\"{nonce}\" ";
+    source = source.Replace("<script ", nonceScript);
+
+    // link rel="stylesheet"
+    var nonceLinkStyle = $"<link nonce=\"{nonce}\" rel=\"stylesheet";
+    source = source.Replace("<link rel=\"stylesheet", nonceLinkStyle);
+
+    // write version footer
+    source = source.Replace("***VERSION_FOOTER_PLACEHOLDER***", $"{Model.Version} - {Model.Env}");
+}
+
+@Html.Raw(source)
