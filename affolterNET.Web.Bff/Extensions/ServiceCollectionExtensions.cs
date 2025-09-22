@@ -119,10 +119,10 @@ public static class ServiceCollectionExtensions
     /// Adds reverse proxy with authentication token forwarding
     /// </summary>
     private static IServiceCollection AddReverseProxyInternal(this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration, string sectionKey = "affolterNET:ReverseProxy")
     {
         // Check if reverse proxy configuration exists and if no, add a minimal config
-        var reverseProxySection = configuration.GetSection("ReverseProxy");
+        var reverseProxySection = configuration.GetSection(sectionKey);
         var hasReverseProxyConfig = reverseProxySection.Exists() && reverseProxySection.GetChildren().Any();
         if (!hasReverseProxyConfig)
         {
@@ -134,7 +134,7 @@ public static class ServiceCollectionExtensions
                 ["ReverseProxy:Clusters"] = ""
             }!);
             var defaultConfig = configBuilder.Build();
-            reverseProxySection = defaultConfig.GetSection("ReverseProxy");
+            reverseProxySection = defaultConfig.GetSection(sectionKey);
 
             // Log a warning that reverse proxy configuration is missing
             _logger?.LogWarning("Using default empty YARP configuration");
