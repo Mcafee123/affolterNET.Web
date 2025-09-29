@@ -29,7 +29,7 @@ public class LocalSecretsConfigurationProvider(string secretsPath) : Configurati
 
     private IDictionary<string, string?> FlattenJson(Dictionary<string, object> json, string prefix = "")
     {
-        var result = new Dictionary<string, string>();
+        var result = new Dictionary<string, string?>();
 
         foreach (var kvp in json)
         {
@@ -45,10 +45,7 @@ public class LocalSecretsConfigurationProvider(string secretsPath) : Configurati
                         var flattened = FlattenJson(nested, key);
                         foreach (var item in flattened)
                         {
-                            if (item.Value != null)
-                            {
-                                result[item.Key] = item.Value;
-                            }
+                            result[item.Key] = item.Value;
                         }
                     }
                 }
@@ -59,7 +56,7 @@ public class LocalSecretsConfigurationProvider(string secretsPath) : Configurati
             }
             else
             {
-                result[key] = kvp.Value.ToString()!;
+                result[key] = kvp.Value?.ToString();
             }
         }
 
