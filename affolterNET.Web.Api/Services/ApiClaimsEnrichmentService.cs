@@ -19,7 +19,11 @@ public class ApiClaimsEnrichmentService(
         var email = principal.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
         var name = principal.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty;
 
-        var roles = principal.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+        // Extract roles from both standard role claims and Keycloak 'roles' claims
+        var roles = principal.FindAll(ClaimTypes.Role).Select(c => c.Value)
+            .Concat(principal.FindAll("roles").Select(c => c.Value))
+            .Distinct()
+            .ToList();
         
         var permissions = Array.Empty<Permission>();
         if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(userId))
@@ -42,7 +46,14 @@ public class ApiClaimsEnrichmentService(
             Name = name,
             Roles = roles,
             Permissions = permissions,
-            Claims = principal.Claims.ToDictionary(c => c.Type, c => (object)c.Value)
+            Claims = principal.Claims
+                .GroupBy(c => c.Type)
+                .ToDictionary(
+                    g => g.Key, 
+                    g => g.Count() == 1 
+                        ? (object)g.First().Value 
+                        : g.Select(c => c.Value).ToArray()
+                )
         };
     }
 
