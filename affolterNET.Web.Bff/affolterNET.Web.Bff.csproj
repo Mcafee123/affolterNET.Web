@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>affolterNET.Web.Bff</PackageId>
-    <Version>0.2.0</Version>
+    <Version>0.1.20</Version>
     <Authors>affolterNET</Authors>
     <Description>BFF authentication components for web applications</Description>
     
