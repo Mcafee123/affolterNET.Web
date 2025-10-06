@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>affolterNET.Web.Bff</PackageId>
-    <Version>0.1.23</Version>
+    <Version>0.3.0</Version>
     <Authors>affolterNET</Authors>
     <Description>BFF authentication components for web applications</Description>
     
@@ -22,7 +22,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../affolterNET.Web.Core/affolterNET.Web.Core.csproj" />
+    <PackageReference Include="affolterNET.Web.Core" Version="0.3.0" />
   </ItemGroup>
 
   <ItemGroup>
