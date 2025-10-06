@@ -1,3 +1,4 @@
+using System.Reflection;
 using affolterNET.Web.Bff.Configuration;
 using affolterNET.Web.Bff.Middleware;
 using affolterNET.Web.Bff.Options;
@@ -25,7 +26,7 @@ public static class ServiceCollectionExtensions
         Action<BffAppOptions>? configureOptions = null)
     {
         _logger = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>()
-            .CreateLogger("affolterNET.Auth.Bff");
+            .CreateLogger(Assembly.GetEntryAssembly()?.GetName().Name!);
 
         // 1. Create BffAppOptions instance with constructor defaults
         var bffOptions = new BffAppOptions(appSettings, configuration);

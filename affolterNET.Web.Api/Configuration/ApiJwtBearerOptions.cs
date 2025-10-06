@@ -20,6 +20,7 @@ public class ApiJwtBearerOptions: IConfigurableOptions<ApiJwtBearerOptions>
 
     public void CopyTo(ApiJwtBearerOptions target)
     {
+        target.AuthMode = AuthMode;
         target.ValidateIssuer = ValidateIssuer;
         target.ValidateAudience = ValidateAudience;
         target.ValidateLifetime = ValidateLifetime;
@@ -57,7 +58,13 @@ public class ApiJwtBearerOptions: IConfigurableOptions<ApiJwtBearerOptions>
         ValidAudiences = [];
         ValidIssuers = [];
         TokenType = "JWT";
+        AuthMode = appSettings.AuthMode;
     }
+    
+    /// <summary>
+    /// Authentication mode for the API (default: None)
+    /// </summary>
+    public AuthenticationMode AuthMode { get; private set; }
 
     /// <summary>
     /// Whether to validate the token issuer
