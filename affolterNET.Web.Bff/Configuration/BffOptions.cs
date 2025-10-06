@@ -1,5 +1,4 @@
 using affolterNET.Web.Core.Options;
-using Microsoft.AspNetCore.Builder;
 using affolterNET.Web.Core.Models;
 
 namespace affolterNET.Web.Bff.Configuration;
@@ -25,7 +24,6 @@ public class BffOptions: IConfigurableOptions<BffOptions>
         options.AuthMode = AuthMode;
         options.BackendUrl = BackendUrl;
         options.FrontendUrl = FrontendUrl;
-        options.ConfigureCustomMiddleware = ConfigureCustomMiddleware;
         options.EnableApiNotFound = EnableApiNotFound;
         options.EnableAntiforgery = EnableAntiforgery;
         options.EnableHttpsRedirection = EnableHttpsRedirection;
@@ -84,11 +82,6 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// Authentication mode for the BFF (default: None)
     /// </summary>
     public AuthenticationMode AuthMode { get; private set; }
-
-    /// <summary>
-    /// Configuration action for custom middleware - called before routing but after authentication
-    /// </summary>
-    public Action<IApplicationBuilder>? ConfigureCustomMiddleware { get; set; }
 
     /// <summary>
     /// Whether to enable API 404 handling

@@ -1,7 +1,11 @@
 using affolterNET.Web.Api.Options;
+using affolterNET.Web.Core.Configuration;
 using Microsoft.AspNetCore.Builder;
 using affolterNET.Web.Core.Middleware;
 using affolterNET.Web.Core.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace affolterNET.Web.Api.Extensions;
 
@@ -30,51 +34,34 @@ public static class ApplicationBuilderExtensions
         // 3. ROUTING (Required before auth)
         app.UseRouting();
         
-        // 4. AUTHENTICATION & AUTHORIZATION PIPELINE
-        if (apiOptions.ApiJwtBearer.AuthMode != AuthenticationMode.None)
+        // 4. CUSTOM MIDDLEWARE (After routing)
+        apiOptions.ConfigureAfterRoutingCustomMiddleware?.Invoke(app);
+        
+        // 5. CORS (Must be after UseRouting and before UseAuthentication)
+        if (apiOptions.Cors.Enabled)
         {
-            // not implemented yet
+            // Validate CORS configuration at startup
+            apiOptions.Cors.Validate(apiOptions.IsDev);
+            app.UseCors();
         }
         
-        // 5. ENDPOINT MAPPING
+        // 6. AUTHENTICATION & AUTHORIZATION PIPELINE
+        if (apiOptions.ApiJwtBearer.AuthMode != AuthenticationMode.None)
+        {
+            app.UseAuthentication();
+            app.UseMiddleware<RptMiddleware>();
+            app.UseAuthorization();
+        }
+        
+        // 7. CUSTOM MIDDLEWARE (Before endpoint mapping)
+        apiOptions.ConfigureBeforeEndpointsCustomMiddleware?.Invoke(app);
+        
+        // 8. ENDPOINT MAPPING
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
         });
 
         return app;
-    }
-
-    /// <summary>
-    /// Adds API authentication middleware pipeline with proper ordering
-    /// </summary>
-    private static IApplicationBuilder UseApiAuthentication(this IApplicationBuilder app)
-    {
-        app.UseAuthentication();
-        app.UseMiddleware<RptMiddleware>();
-        app.UseAuthorization();
-
-        return app;
-    }
-
-    /// <summary>
-    /// Adds API authentication middleware pipeline with security headers
-    /// </summary>
-    private static IApplicationBuilder UseApiAuthenticationWithSecurityHeaders(this IApplicationBuilder app)
-    {
-        app.UseMiddleware<SecurityHeadersMiddleware>();
-        app.UseAuthentication();
-        app.UseMiddleware<RptMiddleware>();
-        app.UseAuthorization();
-
-        return app;
-    }
-
-    /// <summary>
-    /// Adds API authentication middleware pipeline with security headers
-    /// </summary>
-    private static IApplicationBuilder UseSecurityHeaders(this IApplicationBuilder app)
-    {
-        return app.UseMiddleware<SecurityHeadersMiddleware>();
     }
 }
