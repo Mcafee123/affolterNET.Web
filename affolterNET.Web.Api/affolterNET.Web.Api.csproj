@@ -22,7 +22,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="affolterNET.Web.Core" Version="0.3.0" />
+    <ProjectReference Include="../affolterNET.Web.Core/affolterNET.Web.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
