@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using affolterNET.Web.Core.Configuration;
 using affolterNET.Web.Core.Models;
 using Microsoft.Extensions.Configuration;
@@ -14,7 +16,10 @@ public abstract class CoreAppOptions
         PermissionCache = config.CreateFromConfig<PermissionCacheOptions>(appSettings);
         SecurityHeaders = config.CreateFromConfig<SecurityHeadersOptions>(appSettings);
         Swagger = config.CreateFromConfig<SwaggerOptions>(appSettings);
+        IsDev = appSettings.IsDev;
     }
+    
+    public bool IsDev { get; }
     
     /// <summary>
     /// Whether to enable security headers middleware
@@ -60,13 +65,30 @@ public abstract class CoreAppOptions
         SecurityHeaders.ConfigureDi(services);
         Swagger.ConfigureDi(services);
     }
+
+    protected abstract Dictionary<string, object> GetConfigs();
     
-    protected void AddCoreToConfigurationDict(Dictionary<string, object> dict)
+    /// <summary>
+    /// Serializes the BffAppOptions to JSON string for logging purposes
+    /// </summary>
+    /// <returns>JSON representation of the configuration</returns>
+    public string ToJson()
     {
+        var dict = GetConfigs();
+        
+        // add base properties to configuration dictionary
         AuthProvider.AddToConfigurationDict(dict);
         Oidc.AddToConfigurationDict(dict);
         PermissionCache.AddToConfigurationDict(dict);
         SecurityHeaders.AddToConfigurationDict(dict);
         Swagger.AddToConfigurationDict(dict);
+
+        var options = new JsonSerializerOptions
+        {
+            WriteIndented = true
+        };
+        options.Converters.Add(new JsonStringEnumConverter());
+
+        return JsonSerializer.Serialize(dict, options);
     }
 }

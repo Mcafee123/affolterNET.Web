@@ -1,5 +1,3 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using affolterNET.Web.Bff.Configuration;
 using affolterNET.Web.Core.Configuration;
 using affolterNET.Web.Core.Options;
@@ -14,12 +12,8 @@ namespace affolterNET.Web.Bff.Options;
 /// </summary>
 public class BffAppOptions : CoreAppOptions
 {
-    private readonly AppSettings _appSettings;
-
     public BffAppOptions(AppSettings appSettings, IConfiguration config) : base(appSettings, config)
     {
-        _appSettings = appSettings;
-        IsDev = appSettings.IsDev;
         AntiForgery = config.CreateFromConfig<BffAntiforgeryOptions>(appSettings);
         Bff = config.CreateFromConfig<BffOptions>(appSettings);
         if (string.IsNullOrWhiteSpace(Bff.FrontendUrl))
@@ -32,8 +26,6 @@ public class BffAppOptions : CoreAppOptions
         Rpt = config.CreateFromConfig<RptOptions>(appSettings);
         BffAuth = config.CreateFromConfig<BffAuthOptions>(appSettings);
     }
-
-    public bool IsDev { get; }
 
     public BffAuthOptions BffAuth { get; set; }
     public Action<BffAuthOptions>? ConfigureAuth { get; set; }
@@ -87,29 +79,15 @@ public class BffAppOptions : CoreAppOptions
         ConfigureCoreDi(services);
     }
 
-    /// <summary>
-    /// Serializes the BffAppOptions to JSON string for logging purposes
-    /// </summary>
-    /// <returns>JSON representation of the configuration</returns>
-    public string ToJson()
+    protected override Dictionary<string, object> GetConfigs()
     {
         var configDict = new Dictionary<string, object>();
+        BffAuth.AddToConfigurationDict(configDict);
+        AntiForgery.AddToConfigurationDict(configDict);
         Bff.AddToConfigurationDict(configDict);
         CookieAuth.AddToConfigurationDict(configDict);
-        Oidc.AddToConfigurationDict(configDict);
-        AuthProvider.AddToConfigurationDict(configDict);
-        BffAuth.AddToConfigurationDict(configDict);
-
-        // add base properties to configuration dictionary
-        AddCoreToConfigurationDict(configDict);
-
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            Converters = { new JsonStringEnumConverter() }
-        };
-
-        return JsonSerializer.Serialize(configDict, options);
+        Rpt.AddToConfigurationDict(configDict);
+        return configDict;
     }
 
     public void ValidateConfiguration()

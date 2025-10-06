@@ -1,5 +1,3 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using affolterNET.Web.Api.Configuration;
 using affolterNET.Web.Core.Options;
 using affolterNET.Web.Core.Models;
@@ -12,9 +10,7 @@ public class ApiAppOptions : CoreAppOptions
 {
     public ApiAppOptions(AppSettings appSettings, IConfiguration config) : base(appSettings, config)
     {
-        // ApiJwtBearerOptions still uses old pattern, so create it manually for now
         ApiJwtBearer = ApiJwtBearerOptions.CreateDefaults(appSettings);
-        config.GetSection(ApiJwtBearerOptions.SectionName).Bind(ApiJwtBearer);
     }
 
     public ApiJwtBearerOptions ApiJwtBearer { get; set; }
@@ -31,24 +27,15 @@ public class ApiAppOptions : CoreAppOptions
         ConfigureCoreDi(services);
     }
 
-    /// <summary>
-    /// Serializes the ApiAppOptions to JSON string for logging purposes
-    /// </summary>
-    /// <returns>JSON representation of the configuration</returns>
-    public string ToJson()
+    public void ValidateConfiguration()
     {
-        var result = new Dictionary<string, object>();
-        ApiJwtBearer.AddToConfigurationDict(result);
-        AuthProvider.AddToConfigurationDict(result);
-        Oidc.AddToConfigurationDict(result);
-        AuthProvider.AddToConfigurationDict(result);
-        
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            Converters = { new JsonStringEnumConverter() }
-        };
+        // nothing validated yet
+    }
 
-        return JsonSerializer.Serialize(result, options);
+    protected override Dictionary<string, object> GetConfigs()
+    {
+        var configDict = new Dictionary<string, object>();
+        ApiJwtBearer.AddToConfigurationDict(configDict);
+        return configDict;
     }
 }
