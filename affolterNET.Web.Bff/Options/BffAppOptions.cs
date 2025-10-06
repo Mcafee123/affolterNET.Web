@@ -2,6 +2,7 @@ using affolterNET.Web.Bff.Configuration;
 using affolterNET.Web.Core.Configuration;
 using affolterNET.Web.Core.Options;
 using affolterNET.Web.Core.Models;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -41,6 +42,16 @@ public class BffAppOptions : CoreAppOptions
 
     public RptOptions Rpt { get; set; }
     public Action<RptOptions>? ConfigureRpt { get; set; }
+    
+    /// <summary>
+    /// Configuration action for custom middleware - called before endpoint mapping
+    /// </summary>
+    public Action<IApplicationBuilder>? ConfigureBeforeEndpointsCustomMiddleware { get; set; }
+    
+    /// <summary>
+    /// Configuration action for custom middleware - called after routing
+    /// </summary>
+    public Action<IApplicationBuilder>? ConfigureAfterRoutingCustomMiddleware { get; set; }
 
     public void Configure(IServiceCollection services)
     {

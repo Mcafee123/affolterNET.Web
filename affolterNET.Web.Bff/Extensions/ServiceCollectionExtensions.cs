@@ -42,12 +42,14 @@ public static class ServiceCollectionExtensions
         // Swagger
         services.AddSwagger(bffOptions);
         
+        // CORS
+        services.AddCors(bffOptions.Cors);
+        
         // Add BFF-specific authentication setup
         services.AddBffAuthenticationInternal(bffOptions);
         
         // Add BFF supporting services
         services.AddAntiforgeryServicesInternal(bffOptions.AntiForgery);
-        // services.AddSecurityHeaders(configuration);
         services.AddReverseProxyInternal(configuration);
         return bffOptions;
     }

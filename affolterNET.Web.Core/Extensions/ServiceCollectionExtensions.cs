@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using affolterNET.Web.Core.Configuration;
 using affolterNET.Web.Core.Authorization;
 using affolterNET.Web.Core.Options;
@@ -22,6 +23,23 @@ public static class ServiceCollectionExtensions
 
         // Add HTTP context accessor if not already added
         services.AddHttpContextAccessor();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds CORS configuration using ASP.NET Core's built-in CORS with affolterNET CorsOptions
+    /// </summary>
+    public static IServiceCollection AddCors(this IServiceCollection services,
+        AffolterNetCorsOptions corsOptions)
+    {
+        if (corsOptions?.Enabled == true)
+        {
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy => { ConfigureCorsPolicy(policy, corsOptions); });
+            });
+        }
 
         return services;
     }
@@ -62,16 +80,16 @@ public static class ServiceCollectionExtensions
         services.AddAuthorization(options =>
         {
             // Add predefined role-based policies
-            options.AddPolicy("AdminOnly", policy => 
+            options.AddPolicy("AdminOnly", policy =>
                 policy.RequireRole("admin"));
-            
-            options.AddPolicy("UserOrAdmin", policy => 
+
+            options.AddPolicy("UserOrAdmin", policy =>
                 policy.RequireRole("user", "admin"));
-                
-            options.AddPolicy("CustomerOrAdmin", policy => 
+
+            options.AddPolicy("CustomerOrAdmin", policy =>
                 policy.RequireRole("Customer", "admin"));
         });
-        
+
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
         services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
@@ -94,7 +112,8 @@ public static class ServiceCollectionExtensions
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc(coreOptions.Swagger.Version, new() { Title = coreOptions.Swagger.Title, Version = coreOptions.Swagger.Version });
+            c.SwaggerDoc(coreOptions.Swagger.Version,
+                new() { Title = coreOptions.Swagger.Title, Version = coreOptions.Swagger.Version });
 
             // Add XML comments if available
             var xmlFilename = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -105,5 +124,60 @@ public static class ServiceCollectionExtensions
             }
         });
         return services;
+    }
+
+    /// <summary>
+    /// Configures ASP.NET Core CORS policy from affolterNET CorsOptions
+    /// </summary>
+    private static void ConfigureCorsPolicy(CorsPolicyBuilder policy,
+        Configuration.AffolterNetCorsOptions affolterNetCorsOptions)
+    {
+        // Origins
+        if (affolterNetCorsOptions.AllowedOrigins.Contains("*"))
+        {
+            policy.AllowAnyOrigin();
+        }
+        else if (affolterNetCorsOptions.AllowedOrigins.Count > 0)
+        {
+            policy.WithOrigins(affolterNetCorsOptions.AllowedOrigins.ToArray());
+        }
+
+        // Methods
+        if (affolterNetCorsOptions.AllowedMethods.Contains("*"))
+        {
+            policy.AllowAnyMethod();
+        }
+        else if (affolterNetCorsOptions.AllowedMethods.Count > 0)
+        {
+            policy.WithMethods(affolterNetCorsOptions.AllowedMethods.ToArray());
+        }
+
+        // Headers
+        if (affolterNetCorsOptions.AllowedHeaders.Contains("*"))
+        {
+            policy.AllowAnyHeader();
+        }
+        else if (affolterNetCorsOptions.AllowedHeaders.Count > 0)
+        {
+            policy.WithHeaders(affolterNetCorsOptions.AllowedHeaders.ToArray());
+        }
+
+        // Credentials
+        if (affolterNetCorsOptions.AllowCredentials)
+        {
+            policy.AllowCredentials();
+        }
+
+        // Exposed Headers
+        if (affolterNetCorsOptions.ExposedHeaders.Count > 0)
+        {
+            policy.WithExposedHeaders(affolterNetCorsOptions.ExposedHeaders.ToArray());
+        }
+
+        // Max Age
+        if (affolterNetCorsOptions.MaxAge > 0)
+        {
+            policy.SetPreflightMaxAge(TimeSpan.FromSeconds(affolterNetCorsOptions.MaxAge));
+        }
     }
 }

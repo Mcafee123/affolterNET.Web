@@ -62,14 +62,25 @@ public static class ApplicationBuilderExtensions
 
         // 6. ROUTING (Required before auth)
         app.UseRouting();
+        
+        // 7. CUSTOM MIDDLEWARE (After routing)
+        bffOptions.ConfigureAfterRoutingCustomMiddleware?.Invoke(app);
 
-        // 7. ANTIFORGERY (Always enabled for CSRF protection, regardless of auth mode)
+        // 8. CORS (Must be after UseRouting and before UseAuthentication)
+        if (bffOptions.Cors.Enabled)
+        {
+            // Validate CORS configuration at startup
+            bffOptions.Cors.Validate(bffOptions.IsDev);
+            app.UseCors();
+        }
+
+        // 9. ANTIFORGERY (Always enabled for CSRF protection, regardless of auth mode)
         if (bffOptions.Bff.EnableAntiforgery)
         {
             app.UseAntiforgery();
         }
 
-        // 8. AUTHENTICATION & AUTHORIZATION PIPELINE
+        // 10. AUTHENTICATION & AUTHORIZATION PIPELINE
         if (bffOptions.Bff.AuthMode != AuthenticationMode.None)
         {
             app.UseAuthentication();
@@ -93,22 +104,22 @@ public static class ApplicationBuilderExtensions
             app.UseAuthorization();
         }
 
-        // 9. ANTIFORGERY TOKEN MIDDLEWARE (After authorization)
+        // 11. ANTIFORGERY TOKEN MIDDLEWARE (After authorization)
         if (bffOptions.Bff.EnableAntiforgery)
         {
             app.UseMiddleware<AntiforgeryTokenMiddleware>();
         }
 
-        // 10. CUSTOM MIDDLEWARE (After auth, before endpoint mapping)
-        bffOptions.Bff.ConfigureCustomMiddleware?.Invoke(app);
+        // 12. CUSTOM MIDDLEWARE (Before endpoint mapping)
+        bffOptions.ConfigureBeforeEndpointsCustomMiddleware?.Invoke(app);
 
-        // 11. API 404 handling (Before endpoint mapping)
+        // 13. API 404 handling (Before endpoint mapping)
         if (bffOptions.Bff.EnableApiNotFound)
         {
             app.UseMiddleware<ApiNotFoundMiddleware>((object)bffOptions.Bff.ApiRoutePrefixes);
         }
 
-        // 12. ENDPOINT MAPPING
+        // 14. ENDPOINT MAPPING
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapRazorPages();

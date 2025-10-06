@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using affolterNET.Web.Core.Configuration;
+using affolterNET.Web.Core.Extensions;
 using affolterNET.Web.Core.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,7 @@ public abstract class CoreAppOptions
         PermissionCache = config.CreateFromConfig<PermissionCacheOptions>(appSettings);
         SecurityHeaders = config.CreateFromConfig<SecurityHeadersOptions>(appSettings);
         Swagger = config.CreateFromConfig<SwaggerOptions>(appSettings);
+        Cors = config.CreateFromConfig<AffolterNetCorsOptions>(appSettings);
         IsDev = appSettings.IsDev;
     }
     
@@ -40,6 +42,9 @@ public abstract class CoreAppOptions
 
     public SwaggerOptions Swagger { get; set; }
     public Action<SwaggerOptions>? ConfigureSwagger { get; set; }
+    
+    public AffolterNetCorsOptions Cors { get; set; }
+    public Action<AffolterNetCorsOptions>? ConfigureCors { get; set; }
 
     protected void RunCoreActions(ConfigureActions? actions = null)
     {
@@ -49,12 +54,14 @@ public abstract class CoreAppOptions
         actions.Add(ConfigurePermissionCache);
         actions.Add(ConfigureSecurityHeaders);
         actions.Add(ConfigureSwagger);
+        actions.Add(ConfigureCors);
         
         AuthProvider.RunActions(actions);
         Oidc.RunActions(actions);
         PermissionCache.RunActions(actions);
         SecurityHeaders.RunActions(actions);
         Swagger.RunActions(actions);
+        Cors.RunActions(actions);
     }
 
     protected void ConfigureCoreDi(IServiceCollection services)
@@ -64,6 +71,7 @@ public abstract class CoreAppOptions
         PermissionCache.ConfigureDi(services);
         SecurityHeaders.ConfigureDi(services);
         Swagger.ConfigureDi(services);
+        Cors.ConfigureDi(services);
     }
 
     protected abstract Dictionary<string, object> GetConfigs();
@@ -82,6 +90,7 @@ public abstract class CoreAppOptions
         PermissionCache.AddToConfigurationDict(dict);
         SecurityHeaders.AddToConfigurationDict(dict);
         Swagger.AddToConfigurationDict(dict);
+        Cors.AddToConfigurationDict(dict);
 
         var options = new JsonSerializerOptions
         {

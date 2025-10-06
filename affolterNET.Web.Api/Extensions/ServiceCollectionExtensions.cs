@@ -28,6 +28,9 @@ public static class ServiceCollectionExtensions
         configureOptions?.Invoke(apiOptions);
         apiOptions.Configure(services);
         
+        // Add security headers
+        // services.AddSecurityHeaders(apiOptions.SecurityHeaders);
+        
         // Add core authentication services
         services.AddCoreServices()
             .AddKeycloakIntegration(apiOptions)
@@ -37,11 +40,11 @@ public static class ServiceCollectionExtensions
         // Swagger
         services.AddSwagger(apiOptions);
         
+        // CORS
+        services.AddCors(apiOptions.Cors);
+        
         // Add API-specific authentication setup
         services.AddApiAuthenticationInternal(apiOptions);
-        
-        // Add security headers
-        // services.AddSecurityHeaders(apiOptions.SecurityHeaders);
 
         return apiOptions;
     }
