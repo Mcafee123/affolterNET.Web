@@ -35,6 +35,7 @@ public static class ServiceCollectionExtensions
     {
         if (corsOptions?.Enabled == true)
         {
+            services.AddMemoryCache();
             services.AddCors(options =>
             {
                 options.AddDefaultPolicy(policy => { ConfigureCorsPolicy(policy, corsOptions); });
