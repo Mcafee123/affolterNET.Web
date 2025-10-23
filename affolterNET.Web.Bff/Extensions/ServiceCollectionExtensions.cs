@@ -22,7 +22,8 @@ public static class ServiceCollectionExtensions
     /// Adds complete BFF authentication with all required services and middleware
     /// This is the single public entry point for BFF authentication
     /// </summary>
-    public static BffAppOptions AddBffServices(this IServiceCollection services, AppSettings appSettings, IConfiguration configuration,
+    public static BffAppOptions AddBffServices(this IServiceCollection services, AppSettings appSettings,
+        IConfiguration configuration,
         Action<BffAppOptions>? configureOptions = null)
     {
         _logger = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>()
@@ -32,22 +33,22 @@ public static class ServiceCollectionExtensions
         var bffOptions = new BffAppOptions(appSettings, configuration);
         configureOptions?.Invoke(bffOptions);
         bffOptions.Configure(services);
-        
+
         // Add core authentication services
         services.AddCoreServices()
             .AddKeycloakIntegration(bffOptions)
             .AddRptServices()
             .AddAuthorizationPolicies();
-        
+
         // Swagger
         services.AddSwagger(bffOptions);
-        
+
         // CORS
         services.AddCors(bffOptions.Cors);
-        
+
         // Add BFF-specific authentication setup
         services.AddBffAuthenticationInternal(bffOptions);
-        
+
         // Add BFF supporting services
         services.AddAntiforgeryServicesInternal(bffOptions.AntiForgery);
         services.AddReverseProxyInternal(configuration);
@@ -57,7 +58,8 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds BFF authentication configuration (cookies, OIDC)
     /// </summary>
-    private static IServiceCollection AddBffAuthenticationInternal(this IServiceCollection services, BffAppOptions bffOptions)
+    private static IServiceCollection AddBffAuthenticationInternal(this IServiceCollection services,
+        BffAppOptions bffOptions)
     {
         // Add authentication
         services.AddAuthentication(options =>
@@ -107,6 +109,31 @@ public static class ServiceCollectionExtensions
                 // Map claims
                 options.MapInboundClaims = false;
                 options.GetClaimsFromUserInfoEndpoint = true;
+
+                // BFF pattern: Prevent automatic redirects to IDP
+                // When [Authorize] fails, it challenges the DefaultChallengeScheme (OIDC)
+                // We intercept here and return 401
+                options.Events = new OpenIdConnectEvents
+                {
+                    OnRedirectToIdentityProvider = context =>
+                    {
+                        var path = context.Request.Path.Value ?? string.Empty;
+
+                        // Allow redirect for explicit login endpoint
+                        // This is called when user clicks "Login" button
+                        if (path.Equals("/bff/account/login", StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Allow the redirect to IDP for login flow
+                            return Task.CompletedTask;
+                        }
+
+                        // BFF pattern: Always return 401 instead of redirecting to IDP
+                        // The SPA handles showing login UI and calling /bff/account/login explicitly
+                        context.Response.StatusCode = 401;
+                        context.HandleResponse();
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
         // Register BFF-specific services (only services from this library)
@@ -153,7 +180,8 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds antiforgery services configured for SPA scenarios with client-accessible tokens
     /// </summary>
-    private static IServiceCollection AddAntiforgeryServicesInternal(this IServiceCollection services, BffAntiforgeryOptions bffAntiforgeryOptions)
+    private static IServiceCollection AddAntiforgeryServicesInternal(this IServiceCollection services,
+        BffAntiforgeryOptions bffAntiforgeryOptions)
     {
         services.AddAntiforgery(options =>
         {
