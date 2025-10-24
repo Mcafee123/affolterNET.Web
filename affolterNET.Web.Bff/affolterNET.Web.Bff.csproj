@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
     <PackageId>affolterNET.Web.Bff</PackageId>
     <Version>0.3.5</Version>
     <Authors>affolterNET</Authors>
@@ -37,19 +38,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.9" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.2.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Pages/**/*.cshtml">
-      <PackagePath>contentFiles/cs/any/Pages</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <BuildAction>Content</BuildAction>
-    </Content>
-    <Content Include="Pages/**/*.cshtml.cs">
-      <PackagePath>contentFiles/cs/any/Pages</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <BuildAction>Content</BuildAction>
-    </Content>
   </ItemGroup>
 
 </Project>
