@@ -14,6 +14,7 @@ public abstract class CoreAppOptions
     {
         AuthProvider = config.CreateFromConfig<AuthProviderOptions>(appSettings);
         Oidc = config.CreateFromConfig<OidcOptions>(appSettings);
+        OidcClaimTypes = config.CreateFromConfig<OidcClaimTypeOptions>(appSettings);
         PermissionCache = config.CreateFromConfig<PermissionCacheOptions>(appSettings);
         SecurityHeaders = config.CreateFromConfig<SecurityHeadersOptions>(appSettings);
         Swagger = config.CreateFromConfig<SwaggerOptions>(appSettings);
@@ -34,6 +35,9 @@ public abstract class CoreAppOptions
     public OidcOptions Oidc { get; set; }
     public Action<OidcOptions>? ConfigureOidc { get; set; }
 
+    public OidcClaimTypeOptions OidcClaimTypes { get; set; }
+    public Action<OidcClaimTypeOptions>? ConfigureOidcClaimTypes { get; set; }
+
     public PermissionCacheOptions PermissionCache { get; set; }
     public Action<PermissionCacheOptions>? ConfigurePermissionCache { get; set; }
 
@@ -51,6 +55,7 @@ public abstract class CoreAppOptions
         actions ??= new ConfigureActions(); // create if null
         actions.Add(ConfigureAuthProvider);
         actions.Add(ConfigureOidc);
+        actions.Add(ConfigureOidcClaimTypes);
         actions.Add(ConfigurePermissionCache);
         actions.Add(ConfigureSecurityHeaders);
         actions.Add(ConfigureSwagger);
@@ -58,6 +63,7 @@ public abstract class CoreAppOptions
         
         AuthProvider.RunActions(actions);
         Oidc.RunActions(actions);
+        OidcClaimTypes.RunActions(actions);
         PermissionCache.RunActions(actions);
         SecurityHeaders.RunActions(actions);
         Swagger.RunActions(actions);
@@ -68,6 +74,7 @@ public abstract class CoreAppOptions
     {
         AuthProvider.ConfigureDi(services);
         Oidc.ConfigureDi(services);
+        OidcClaimTypes.ConfigureDi(services);
         PermissionCache.ConfigureDi(services);
         SecurityHeaders.ConfigureDi(services);
         Swagger.ConfigureDi(services);
@@ -87,6 +94,7 @@ public abstract class CoreAppOptions
         // add base properties to configuration dictionary
         AuthProvider.AddToConfigurationDict(dict);
         Oidc.AddToConfigurationDict(dict);
+        OidcClaimTypes.AddToConfigurationDict(dict);
         PermissionCache.AddToConfigurationDict(dict);
         SecurityHeaders.AddToConfigurationDict(dict);
         Swagger.AddToConfigurationDict(dict);

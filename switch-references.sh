@@ -336,9 +336,9 @@ switch_to_local() {
         done <<< "$target_projects"
         
         # Special handling for affolterNET.Web.Bff: copy Pages for local development
-        if [ "$package_name" == "affolterNET.Web.Bff" ]; then
-            copy_bff_pages "$package_name" "$local_path" "$target_projects" || errors=$((errors + 1))
-        fi
+        # if [ "$package_name" == "affolterNET.Web.Bff" ]; then
+        #     copy_bff_pages "$package_name" "$local_path" "$target_projects" || errors=$((errors + 1))
+        # fi
     done <<< "$(jq -c '.packages[]' "$CONFIG_FILE")"
     
     if [ $errors -gt 0 ]; then
