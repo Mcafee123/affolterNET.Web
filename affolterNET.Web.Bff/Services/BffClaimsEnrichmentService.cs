@@ -1,31 +1,39 @@
 using System.Security.Claims;
+using affolterNET.Web.Core.Configuration;
+using affolterNET.Web.Core.Extensions;
 using Microsoft.Extensions.Logging;
 using affolterNET.Web.Core.Services;
 using affolterNET.Web.Core.Models;
+using Microsoft.Extensions.Options;
 
 namespace affolterNET.Web.Bff.Services;
 
 public class BffClaimsEnrichmentService(
     IPermissionService permissionService,
+    IOptions<OidcClaimTypeOptions> oidcClaimTypeOptions,
     ILogger<BffClaimsEnrichmentService> logger)
     : IClaimsEnrichmentService
 {
+
+    private readonly OidcClaimTypeOptions _claimTypes = oidcClaimTypeOptions.Value;
+
     public async Task<UserContext> EnrichUserContextAsync(ClaimsPrincipal principal, string? accessToken = null, CancellationToken cancellationToken = default)
     {
-        var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
-        var username = principal.FindFirst("preferred_username")?.Value ?? string.Empty;
-        var email = principal.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
-        var name = principal.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty;
+        var userId = principal.FindFirstClaimValue(_claimTypes.Subject);
+        var username = principal.FindFirstClaimValue(_claimTypes.PreferredUsername);
+        var email = principal.FindFirstClaimValue(_claimTypes.Email);
+        var name = principal.FindFirstClaimValue(_claimTypes.Name);
 
         // Extract roles from both standard role claims and Keycloak 'roles' claims
-        var roles = principal.FindAll(ClaimTypes.Role).Select(c => c.Value)
-            .Concat(principal.FindAll("roles").Select(c => c.Value))
+        // ToDo: is "ClaimTypes.Role" necessary?
+        var roles = principal.FindAll(_claimTypes.Roles)
+            .Select(c => c.Value)
             .Distinct()
             .ToList();
-        
+
         // Get access token from authentication properties if not provided
         accessToken ??= principal.FindFirst("access_token")?.Value;
-        
+
         var permissions = Array.Empty<Permission>();
         if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(userId))
         {
@@ -50,9 +58,9 @@ public class BffClaimsEnrichmentService(
             Claims = principal.Claims
                 .GroupBy(c => c.Type)
                 .ToDictionary(
-                    g => g.Key, 
-                    g => g.Count() == 1 
-                        ? (object)g.First().Value 
+                    g => g.Key,
+                    g => g.Count() == 1
+                        ? (object)g.First().Value
                         : g.Select(c => c.Value).ToArray()
                 )
         };
@@ -61,9 +69,9 @@ public class BffClaimsEnrichmentService(
     public async Task<ClaimsPrincipal> EnrichClaimsAsync(ClaimsPrincipal principal, string? accessToken = null, CancellationToken cancellationToken = default)
     {
         var userContext = await EnrichUserContextAsync(principal, accessToken, cancellationToken);
-        
+
         var identity = new ClaimsIdentity(principal.Identity);
-        
+
         // Add permission claims
         foreach (var permission in userContext.Permissions)
         {
@@ -71,5 +79,10 @@ public class BffClaimsEnrichmentService(
         }
 
         return new ClaimsPrincipal(identity);
+    }
+
+    private string FindFirstClaimValue(ClaimsPrincipal principal, string claimType)
+    {
+        return principal.FindFirst(claimType)?.Value ?? string.Empty;
     }
 }
