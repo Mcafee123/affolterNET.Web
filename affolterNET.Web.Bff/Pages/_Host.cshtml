@@ -30,7 +30,8 @@
     source = source.Replace("<link rel=\"stylesheet", nonceLinkStyle);
 
     // write version footer
-    source = source.Replace("***VERSION_FOOTER_PLACEHOLDER***", $"{Model.Version} - {Model.Env}");
+    source = source.Replace("***PLACEHOLDER_ENVIRONMENT_CLASS***", $"env_{Model.EnvironmentDisplayName.ToLower()}");
+    source = source.Replace("***VERSION_FOOTER_PLACEHOLDER***", $"{Model.Version} - {Model.EnvironmentDisplayName}");
 }
 
 @Html.Raw(source)

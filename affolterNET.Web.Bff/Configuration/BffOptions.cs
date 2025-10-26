@@ -33,6 +33,7 @@ public class BffOptions: IConfigurableOptions<BffOptions>
         options.EnableTokenRefresh = EnableTokenRefresh;
         options.ErrorPath = ErrorPath;
         options.FallbackPage = FallbackPage;
+        options.EnvironmentDisplayName = EnvironmentDisplayName;
     }
 
     /// <summary>
@@ -61,6 +62,7 @@ public class BffOptions: IConfigurableOptions<BffOptions>
         EnableTokenRefresh = true;
         ErrorPath = "/Error";
         FallbackPage = "/_Host";
+        EnvironmentDisplayName = "PROD";
     }
 
     /// <summary>
@@ -127,4 +129,9 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// Fallback page for SPA routing
     /// </summary>
     public string? FallbackPage { get; set; }
+    
+    /// <summary>
+    /// Environment Display Name
+    /// </summary>
+    public string EnvironmentDisplayName { get; set; }
 }

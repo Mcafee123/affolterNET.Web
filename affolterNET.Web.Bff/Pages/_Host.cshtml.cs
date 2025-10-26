@@ -1,3 +1,4 @@
+using System.Reflection;
 using affolterNET.Web.Bff.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -17,8 +18,8 @@ public class _HostModel(
 {
     public bool IsDev => hostEnvironment.IsDevelopment();
     public string FrontendUrl => bffOptions.CurrentValue.FrontendUrl;
-    public string Version => Environment.GetEnvironmentVariable("CONTAINER_IMAGE_VERSION") ?? "LOCAL DEBUGGING...";
-    public string Env => IsDev ? "DEV" : "PROD";
+    public string Version => Environment.GetEnvironmentVariable("CONTAINER_IMAGE_VERSION") ?? Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? string.Empty;
+    public string EnvironmentDisplayName => bffOptions.CurrentValue.EnvironmentDisplayName;
 
     public void OnGet()
     {
