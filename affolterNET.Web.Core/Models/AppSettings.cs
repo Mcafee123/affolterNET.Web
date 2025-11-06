@@ -1,7 +1,7 @@
 namespace affolterNET.Web.Core.Models;
 
 /// <summary>
-/// Application settings for BFF configuration
+/// Application settings for affolterNET.Web configuration
 /// </summary>
 public class AppSettings
 {

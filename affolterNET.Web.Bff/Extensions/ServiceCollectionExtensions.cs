@@ -61,6 +61,9 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddBffAuthenticationInternal(this IServiceCollection services,
         BffAppOptions bffOptions)
     {
+        // add health checks
+        services.AddStandardHealthChecks(bffOptions.AuthProvider.AuthorityBase);
+        
         // Add authentication
         services.AddAuthentication(options =>
             {

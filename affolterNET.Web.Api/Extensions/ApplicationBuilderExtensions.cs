@@ -1,11 +1,8 @@
 using affolterNET.Web.Api.Options;
-using affolterNET.Web.Core.Configuration;
+using affolterNET.Web.Core.Extensions;
 using Microsoft.AspNetCore.Builder;
 using affolterNET.Web.Core.Middleware;
 using affolterNET.Web.Core.Models;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace affolterNET.Web.Api.Extensions;
 
@@ -59,6 +56,11 @@ public static class ApplicationBuilderExtensions
         // 8. ENDPOINT MAPPING
         app.UseEndpoints(endpoints =>
         {
+            if (apiOptions.Cloud.MapHealthChecks)
+            {
+                endpoints.MapStandardHealthChecks();
+            }
+
             endpoints.MapControllers();
         });
 

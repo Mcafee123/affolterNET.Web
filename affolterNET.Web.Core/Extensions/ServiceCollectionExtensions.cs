@@ -3,8 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using affolterNET.Web.Core.Configuration;
 using affolterNET.Web.Core.Authorization;
+using affolterNET.Web.Core.HealthChecks;
 using affolterNET.Web.Core.Options;
 using affolterNET.Web.Core.Services;
+using affolterNET.Web.Core.Swagger;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using NETCore.Keycloak.Client.HttpClients.Abstraction;
 using NETCore.Keycloak.Client.HttpClients.Implementation;
@@ -123,6 +127,12 @@ public static class ServiceCollectionExtensions
             {
                 c.IncludeXmlComments(xmlPath);
             }
+            
+            // Document health check endpoints manually
+            if (coreOptions.Cloud.MapHealthChecks && coreOptions.Swagger.ShowHealthEndpoints)
+            {
+                c.DocumentFilter<HealthCheckDocumentFilter>();
+            }
         });
         return services;
     }
@@ -180,5 +190,36 @@ public static class ServiceCollectionExtensions
         {
             policy.SetPreflightMaxAge(TimeSpan.FromSeconds(affolterNetCorsOptions.MaxAge));
         }
+    }
+
+    public static IServiceCollection AddStandardHealthChecks(this IServiceCollection services,
+        string? keycloakBaseUrl = null)
+    {
+        // Startup status + marker
+        services.AddSingleton<StartupStatusService>();
+        services.AddHostedService<StartupMarker>();
+
+        // HttpClient for Keycloak
+        if (!string.IsNullOrEmpty(keycloakBaseUrl))
+        {
+            services.AddHttpClient("keycloak", client =>
+            {
+                client.BaseAddress = new Uri(keycloakBaseUrl.TrimEnd('/'));
+                client.Timeout = TimeSpan.FromSeconds(5);
+            });
+        }
+
+        // Health checks
+        var health = services.AddHealthChecks()
+            .AddCheck<StartupHealthCheck>("startup", tags: new[] { "startup" })
+            .AddCheck("self", () => HealthCheckResult.Healthy("OK"));
+
+        // keycloak health check only if URL provided
+        if (!string.IsNullOrEmpty(keycloakBaseUrl))
+        {
+            health.AddCheck<KeycloakHealthCheck>("keycloak", tags: new[] { "ready", "startup" });
+        }
+
+        return services;
     }
 }
