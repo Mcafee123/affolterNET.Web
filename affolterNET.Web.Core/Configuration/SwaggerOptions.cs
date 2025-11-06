@@ -26,6 +26,7 @@ public class SwaggerOptions: IConfigurableOptions<SwaggerOptions>
         target.EnableSwagger = EnableSwagger;
         target.Title = Title;
         target.Version = Version;
+        target.ShowHealthEndpoints = ShowHealthEndpoints;
     }
 
     /// <summary>
@@ -45,9 +46,11 @@ public class SwaggerOptions: IConfigurableOptions<SwaggerOptions>
         Title = $"{Assembly.GetEntryAssembly()?.GetName().Name} - {env} - API";
         Version = "v1";
         EnableSwagger = true;
+        ShowHealthEndpoints = true;
     }
 
     public string Title { get; set; }
     public string Version { get; set; }
     public bool EnableSwagger { get; set; }
+    public bool ShowHealthEndpoints { get; set; }
 }

@@ -67,7 +67,7 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
         AllowedStyleSources = [];
         AllowedStyleHashes = [
             "'sha256-RL3ie0nH+Lzz2YNqQN83mnU0J1ot4QL7b99vMdIX99w='", // Swagger inline styles
-            "'sha256-+OsIn6RhyCZCUkkvtHxFtP0kU3CGdGeLjDd9Fzqdl3o='" // an-loader component inline styles
+            "'sha256-adCHRDdBmbx4dWYaKj8Jau0AjBYObEHM9Q3PajAHatg='" // an-loader component inline styles
         ];
         AllowInlineStyles = settings.IsDev; // Allow unsafe-inline styles only in development
         AllowedImageSources = [];

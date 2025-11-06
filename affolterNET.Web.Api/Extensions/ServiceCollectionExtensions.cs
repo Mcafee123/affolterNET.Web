@@ -28,8 +28,8 @@ public static class ServiceCollectionExtensions
         configureOptions?.Invoke(apiOptions);
         apiOptions.Configure(services);
         
-        // Add security headers
-        // services.AddSecurityHeaders(apiOptions.SecurityHeaders);
+        // add health checks
+        services.AddStandardHealthChecks(apiOptions.AuthProvider.AuthorityBase);
         
         // Add core authentication services
         services.AddCoreServices()

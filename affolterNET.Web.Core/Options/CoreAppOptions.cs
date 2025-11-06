@@ -19,6 +19,7 @@ public abstract class CoreAppOptions
         SecurityHeaders = config.CreateFromConfig<SecurityHeadersOptions>(appSettings);
         Swagger = config.CreateFromConfig<SwaggerOptions>(appSettings);
         Cors = config.CreateFromConfig<AffolterNetCorsOptions>(appSettings);
+        Cloud = config.CreateFromConfig<CloudOptions>(appSettings);
         IsDev = appSettings.IsDev;
     }
     
@@ -49,6 +50,9 @@ public abstract class CoreAppOptions
     
     public AffolterNetCorsOptions Cors { get; set; }
     public Action<AffolterNetCorsOptions>? ConfigureCors { get; set; }
+    
+    public CloudOptions Cloud { get; set; }
+    public Action<CloudOptions>? ConfigureCloud { get; set; }
 
     protected void RunCoreActions(ConfigureActions? actions = null)
     {
@@ -60,6 +64,7 @@ public abstract class CoreAppOptions
         actions.Add(ConfigureSecurityHeaders);
         actions.Add(ConfigureSwagger);
         actions.Add(ConfigureCors);
+        actions.Add(ConfigureCloud);
         
         AuthProvider.RunActions(actions);
         Oidc.RunActions(actions);
@@ -68,6 +73,7 @@ public abstract class CoreAppOptions
         SecurityHeaders.RunActions(actions);
         Swagger.RunActions(actions);
         Cors.RunActions(actions);
+        Cloud.RunActions(actions);
     }
 
     protected void ConfigureCoreDi(IServiceCollection services)
@@ -79,6 +85,7 @@ public abstract class CoreAppOptions
         SecurityHeaders.ConfigureDi(services);
         Swagger.ConfigureDi(services);
         Cors.ConfigureDi(services);
+        Cloud.ConfigureDi(services);
     }
 
     protected abstract Dictionary<string, object> GetConfigs();
@@ -99,6 +106,7 @@ public abstract class CoreAppOptions
         SecurityHeaders.AddToConfigurationDict(dict);
         Swagger.AddToConfigurationDict(dict);
         Cors.AddToConfigurationDict(dict);
+        Cloud.AddToConfigurationDict(dict);
 
         var options = new JsonSerializerOptions
         {

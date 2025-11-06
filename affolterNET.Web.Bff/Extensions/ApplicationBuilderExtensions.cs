@@ -2,6 +2,7 @@ using affolterNET.Web.Bff.Configuration;
 using Microsoft.AspNetCore.Builder;
 using affolterNET.Web.Bff.Middleware;
 using affolterNET.Web.Bff.Options;
+using affolterNET.Web.Core.Extensions;
 using affolterNET.Web.Core.Middleware;
 using affolterNET.Web.Core.Models;
 
@@ -122,6 +123,10 @@ public static class ApplicationBuilderExtensions
         // 14. ENDPOINT MAPPING
         app.UseEndpoints(endpoints =>
         {
+            if (bffOptions.Cloud.MapHealthChecks)
+            {
+                endpoints.MapStandardHealthChecks();
+            }
             endpoints.MapRazorPages();
             endpoints.MapControllers();
 
