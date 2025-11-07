@@ -69,6 +69,7 @@ public class AuthProviderOptions: IConfigurableOptions<AuthProviderOptions>
     /// <summary>
     /// OIDC Client Secret (for confidential clients)
     /// </summary>
+    [Sensible]
     public string ClientSecret { get; set; }
 
     /// <summary>
