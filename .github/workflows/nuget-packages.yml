@@ -232,7 +232,14 @@ jobs:
         (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_nuget == 'true')
       run: |
         echo "Publishing packages to NuGet.org..."
-        for package in ./packages/*.nupkg; do
+        for package in ./packages/affolterNET.Web.Core.*.nupkg \
+                      ./packages/affolterNET.Web.Api.*.nupkg \
+                      ./packages/affolterNET.Web.Bff.*.nupkg; do
+          # Skip if it's a symbol package
+          if [[ $package == *.snupkg ]]; then
+            continue
+          fi
+          
           echo "Publishing $package"
           dotnet nuget push "$package" \
             --api-key ${{ secrets.NUGET_API_KEY }} \
