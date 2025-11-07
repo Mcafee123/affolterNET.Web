@@ -1,10 +1,12 @@
 using System.Linq.Expressions;
+using System.Reflection;
+using affolterNET.Web.Core.Configuration;
 using affolterNET.Web.Core.Models;
+using affolterNET.Web.Core.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
-namespace affolterNET.Web.Core.Options;
+namespace affolterNET.Web.Core.Extensions;
 
 public static class OptionsExtensions
 {
@@ -117,7 +119,7 @@ public static class OptionsExtensions
             .Where(p => p.CanRead && !IsExcludedProperty(p))
             .ToDictionary(
                 p => p.Name,
-                p => GetPropertyValue(p, obj)
+                p => GetPropertyValue(p, obj, p.GetCustomAttribute<SensibleAttribute>() != null)
             );
 
         return properties;
@@ -137,11 +139,34 @@ public static class OptionsExtensions
                System.ComponentModel.EditorBrowsableState.Never;
     }
 
-    private static object? GetPropertyValue(PropertyInfo property, object? obj)
+    private static object? GetPropertyValue(PropertyInfo property, object? obj, bool sensible)
     {
         try
         {
             var value = property.GetValue(obj);
+            if (sensible)
+            {
+                if (value == null)
+                {
+                    return "[EMPTY]";
+                }
+
+                var v = value as string;
+                if (v == null)
+                {
+                    return "[NOT STRING BUT SET]";
+                }
+
+                if (string.IsNullOrWhiteSpace(v))
+                {
+                    return "[EMPTY STRING]";
+                }
+                
+                var length = v.Length;
+                var first = length > 0 ? v[0].ToString() : "";
+                var last = length > 1 ? v[^1].ToString() : "";
+                return $"{first}...[HIDDEN]...{last} (len={length})";
+            }
             return value;
         }
         catch

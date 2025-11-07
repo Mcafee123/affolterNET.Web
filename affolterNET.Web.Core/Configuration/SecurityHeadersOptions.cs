@@ -73,7 +73,7 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
         AllowedImageSources = [];
         AllowDataImages = true; // Allow data URLs for base64 images (commonly used)
         AllowBlobImages = true; // Allow blob images in development and production
-        AllowedFontSources = ["https://cdn.jsdelivr.net"]; // Allow jsdelivr CDN for fonts
+        AllowedFontSources = []; // Allow jsdelivr CDN and data URIs for fonts (BeerCSS uses inline base64 fonts)
         RemoveServerHeader = true;
         HstsMaxAge = settings.IsDev ? 0 : 31536000; // Disable HSTS in development
         HstsIncludeSubDomains = !settings.IsDev; // More relaxed in development
