@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Claude Code plugins for affolterNET.Web authentication and authorization libraries",
-    "pluginRoot": "../plugins"
+    "pluginRoot": "plugins"
   },
   "plugins": [
     {
