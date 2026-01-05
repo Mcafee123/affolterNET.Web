@@ -299,6 +299,17 @@ See `.claude/skills/keycloak-configuration/SKILL.md` for Keycloak identity provi
 - Authorization services (RPT-based permissions) often require manual configuration via Admin Console
 - Docker containers need custom CA installed via entrypoint script for HTTPS communication
 
+## Cypress E2E Tests
+
+See `.claude/skills/cypress-e2e-tests/SKILL.md` for end-to-end testing with Cypress. Key points:
+
+- Tests located in `examples/e2e-tests/` with Cypress 15+
+- Custom commands for Keycloak authentication: `cy.login()`, `cy.loginAsAdmin()`, `cy.logout()`
+- Uses `cy.origin()` for cross-origin Keycloak interactions
+- Three test users: admin, user, viewer with different permission levels
+- Run with `npm run cy:open` (interactive) or `npm run test` (headless)
+- Requires Docker containers running (Keycloak, API, BFF)
+
 ## Working with This Codebase
 
 ### Adding New Features
