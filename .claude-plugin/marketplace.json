@@ -11,13 +11,13 @@
   "plugins": [
     {
       "name": "affolternet-web-api",
-      "source": "affolternet-web-api",
+      "source": "./affolternet-web-api",
       "description": "API authentication with JWT Bearer tokens and Keycloak integration",
       "version": "1.0.0"
     },
     {
       "name": "affolternet-web-bff",
-      "source": "affolternet-web-bff",
+      "source": "./affolternet-web-bff",
       "description": "BFF authentication with cookie-based OIDC, YARP reverse proxy, and SPA integration",
       "version": "1.0.0"
     }
