@@ -409,3 +409,16 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Examples - environment files (keep .env.example as template)
+examples/.env
+
+# Examples - certificates (users should generate with mkcert)
+examples/certs/
+
+# Cypress test outputs
+examples/e2e-tests/cypress/screenshots/
+examples/e2e-tests/cypress/videos/
+
+# Vue SPA build output
+examples/ExampleBff/wwwroot/

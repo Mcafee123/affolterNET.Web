@@ -25,6 +25,42 @@ dotnet add package affolterNET.Web.Api
 dotnet add package affolterNET.Web.Bff
 ```
 
+## Claude Code Integration
+
+This library includes Claude Code plugins for AI-assisted configuration. The plugins provide contextual guidance for service registration, authentication setup, YARP configuration, and more.
+
+### Plugin Installation
+
+```bash
+# Add the marketplace
+/plugin marketplace add https://github.com/Mcafee123/affolterNET.Web
+
+# Install for BFF applications
+/plugin install affolternet-web-bff@affolterNET.Web
+
+# Install for API applications
+/plugin install affolternet-web-api@affolterNET.Web
+```
+
+### Available Skills
+
+**BFF Plugin:**
+- `bff-setup` - Service registration and middleware pipeline
+- `keycloak-auth` - Cookie-based OIDC authentication
+- `yarp-proxy` - YARP reverse proxy configuration
+- `spa-integration` - SPA fallback and 401 handling
+- `rpt-permissions` - Permission-based authorization
+- `security` - Headers, CORS, and antiforgery
+- `swagger` - OpenAPI documentation
+- `customization` - Middleware extension hooks
+
+**API Plugin:**
+- `api-setup` - Service registration and middleware
+- `jwt-auth` - JWT Bearer authentication
+- `security` - Headers and CORS
+- `swagger` - OpenAPI documentation
+- `health-checks` - Health check endpoints
+
 ## Development
 
 ### Building Packages Locally

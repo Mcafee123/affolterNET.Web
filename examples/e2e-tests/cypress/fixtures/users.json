@@ -1,0 +1,33 @@
+{
+  "admin": {
+    "username": "admin@example.com",
+    "password": "admin123",
+    "firstName": "Admin",
+    "lastName": "User",
+    "roles": ["admin", "user", "viewer"],
+    "permissions": {
+      "admin-resource": ["view", "manage"],
+      "user-resource": ["read", "create", "update", "delete"]
+    }
+  },
+  "user": {
+    "username": "user@example.com",
+    "password": "user123",
+    "firstName": "Standard",
+    "lastName": "User",
+    "roles": ["user", "viewer"],
+    "permissions": {
+      "user-resource": ["read", "create", "update"]
+    }
+  },
+  "viewer": {
+    "username": "viewer@example.com",
+    "password": "viewer123",
+    "firstName": "Viewer",
+    "lastName": "User",
+    "roles": ["viewer"],
+    "permissions": {
+      "user-resource": ["read"]
+    }
+  }
+}
