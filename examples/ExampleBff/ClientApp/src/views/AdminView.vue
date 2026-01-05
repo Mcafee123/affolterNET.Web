@@ -78,79 +78,35 @@ function handleError(err: unknown) {
 }
 </script>
 
-<template>
-  <div class="admin-view">
-    <h1>Permission-Based API</h1>
-    <p class="description">
-      These endpoints require specific permissions (Authorize mode).
-      Keycloak RPT tokens are used to validate resource permissions.
-    </p>
-
-    <div class="permissions-info">
-      <h3>Your Permissions</h3>
-      <ul v-if="authStore.permissions.length">
-        <li v-for="perm in authStore.permissions" :key="`${perm.resource}:${perm.action}`">
-          <code>{{ perm.resource }}:{{ perm.action }}</code>
-        </li>
-      </ul>
-      <p v-else>No permissions assigned to your account.</p>
-    </div>
-
-    <div class="api-section">
-      <h3>Admin Resource Endpoints</h3>
-      <p class="hint">Requires <code>admin-resource:view</code> or <code>admin-resource:manage</code></p>
-      <div class="actions">
-        <button
-          class="btn"
-          @click="callAdminViewApi"
-          :disabled="loading"
-          :class="{ disabled: !authStore.hasPermission('admin-resource', 'view') }"
-        >
-          GET /api/permission/admin
-        </button>
-        <button
-          class="btn"
-          @click="callAdminManageApi"
-          :disabled="loading"
-          :class="{ disabled: !authStore.hasPermission('admin-resource', 'manage') }"
-        >
-          POST /api/permission/admin
-        </button>
-      </div>
-    </div>
-
-    <div class="api-section">
-      <h3>User Resource Endpoints</h3>
-      <p class="hint">Requires <code>user-resource:read</code> or <code>user-resource:create</code></p>
-      <div class="actions">
-        <button
-          class="btn"
-          @click="callUserReadApi"
-          :disabled="loading"
-          :class="{ disabled: !authStore.hasPermission('user-resource', 'read') }"
-        >
-          GET /api/permission/user
-        </button>
-        <button
-          class="btn"
-          @click="callUserCreateApi"
-          :disabled="loading"
-          :class="{ disabled: !authStore.hasPermission('user-resource', 'create') }"
-        >
-          POST /api/permission/user
-        </button>
-      </div>
-    </div>
-
-    <div v-if="loading" class="loading">Loading...</div>
-
-    <div v-if="error" class="error">{{ error }}</div>
-
-    <div v-if="response" class="response">
-      <h3>Response</h3>
-      <pre>{{ JSON.stringify(response, null, 2) }}</pre>
-    </div>
-  </div>
+<template lang="pug">
+.admin-view
+  h1 Permission-Based API
+  p.description
+    | These endpoints require specific permissions (Authorize mode).
+    | Keycloak RPT tokens are used to validate resource permissions.
+  .permissions-info
+    h3 Your Permissions
+    ul(v-if="authStore.permissions.length")
+      li(v-for="perm in authStore.permissions" :key="`${perm.resource}:${perm.action}`")
+        code {{ perm.resource }}:{{ perm.action }}
+    p(v-else) No permissions assigned to your account.
+  .api-section
+    h3 Admin Resource Endpoints
+    p.hint Requires #[code admin-resource:view] or #[code admin-resource:manage]
+    .actions
+      button.btn(@click="callAdminViewApi" :disabled="loading" :class="{ disabled: !authStore.hasPermission('admin-resource', 'view') }") GET /api/permission/admin
+      button.btn(@click="callAdminManageApi" :disabled="loading" :class="{ disabled: !authStore.hasPermission('admin-resource', 'manage') }") POST /api/permission/admin
+  .api-section
+    h3 User Resource Endpoints
+    p.hint Requires #[code user-resource:read] or #[code user-resource:create]
+    .actions
+      button.btn(@click="callUserReadApi" :disabled="loading" :class="{ disabled: !authStore.hasPermission('user-resource', 'read') }") GET /api/permission/user
+      button.btn(@click="callUserCreateApi" :disabled="loading" :class="{ disabled: !authStore.hasPermission('user-resource', 'create') }") POST /api/permission/user
+  .loading(v-if="loading") Loading...
+  .error(v-if="error") {{ error }}
+  .response(v-if="response")
+    h3 Response
+    pre {{ JSON.stringify(response, null, 2) }}
 </template>
 
 <style scoped>

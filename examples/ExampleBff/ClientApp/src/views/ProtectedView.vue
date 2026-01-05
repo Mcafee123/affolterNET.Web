@@ -56,32 +56,20 @@ async function callProfileApi() {
 }
 </script>
 
-<template>
-  <div class="protected-view">
-    <h1>Protected API</h1>
-    <p class="description">
-      These endpoints require authentication (Authenticate mode).
-      The BFF forwards your access token to the API via YARP.
-    </p>
-
-    <div class="actions">
-      <button class="btn" @click="callProtectedApi" :disabled="loading">
-        Call /api/protected
-      </button>
-      <button class="btn" @click="callProfileApi" :disabled="loading">
-        Call /api/protected/profile
-      </button>
-    </div>
-
-    <div v-if="loading" class="loading">Loading...</div>
-
-    <div v-if="error" class="error">{{ error }}</div>
-
-    <div v-if="response" class="response">
-      <h3>Response</h3>
-      <pre>{{ JSON.stringify(response, null, 2) }}</pre>
-    </div>
-  </div>
+<template lang="pug">
+.protected-view
+  h1 Protected API
+  p.description
+    | These endpoints require authentication (Authenticate mode).
+    | The BFF forwards your access token to the API via YARP.
+  .actions
+    button.btn(@click="callProtectedApi" :disabled="loading") Call /api/protected
+    button.btn(@click="callProfileApi" :disabled="loading") Call /api/protected/profile
+  .loading(v-if="loading") Loading...
+  .error(v-if="error") {{ error }}
+  .response(v-if="response")
+    h3 Response
+    pre {{ JSON.stringify(response, null, 2) }}
 </template>
 
 <style scoped>

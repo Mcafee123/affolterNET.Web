@@ -4,58 +4,42 @@ import { useAuthStore } from '@/stores/auth'
 const authStore = useAuthStore()
 </script>
 
-<template>
-  <div class="home">
-    <h1>affolterNET.Web Example</h1>
-    <p class="subtitle">BFF + Vue SPA Authentication Demo</p>
-
-    <div class="auth-status">
-      <div v-if="authStore.loading" class="loading">
-        Loading authentication status...
-      </div>
-      <div v-else-if="authStore.isAuthenticated" class="authenticated">
-        <h2>Welcome, {{ authStore.userContext?.name || authStore.username }}!</h2>
-        <div class="user-details">
-          <p><strong>Email:</strong> {{ authStore.email }}</p>
-          <p><strong>Roles:</strong> {{ authStore.roles.join(', ') || 'None' }}</p>
-          <p><strong>Permissions:</strong></p>
-          <ul v-if="authStore.permissions.length">
-            <li v-for="perm in authStore.permissions" :key="`${perm.resource}:${perm.action}`">
-              {{ perm.resource }}:{{ perm.action }}
-            </li>
-          </ul>
-          <p v-else>No permissions assigned</p>
-        </div>
-      </div>
-      <div v-else class="not-authenticated">
-        <h2>Not Logged In</h2>
-        <p>Click the Login button to authenticate with Keycloak.</p>
-        <button class="btn-primary" @click="authStore.login()">Login Now</button>
-      </div>
-    </div>
-
-    <div class="features">
-      <h3>Example Features</h3>
-      <div class="feature-grid">
-        <RouterLink to="/public" class="feature-card">
-          <h4>Public API</h4>
-          <p>Call public API endpoints without authentication</p>
-        </RouterLink>
-        <RouterLink to="/protected" class="feature-card">
-          <h4>Protected API</h4>
-          <p>Call API endpoints that require authentication</p>
-        </RouterLink>
-        <RouterLink
-          v-if="authStore.hasPermission('admin-resource', 'view')"
-          to="/admin"
-          class="feature-card"
-        >
-          <h4>Admin API</h4>
-          <p>Call API endpoints that require specific permissions</p>
-        </RouterLink>
-      </div>
-    </div>
-  </div>
+<template lang="pug">
+.home
+  h1 affolterNET.Web Example
+  p.subtitle BFF + Vue SPA Authentication Demo
+  .auth-status
+    .loading(v-if="authStore.loading") Loading authentication status...
+    .authenticated(v-else-if="authStore.isAuthenticated")
+      h2 Welcome, {{ authStore.userContext?.name || authStore.username }}!
+      .user-details
+        p
+          strong Email:
+          |  {{ authStore.email }}
+        p
+          strong Roles:
+          |  {{ authStore.roles.join(', ') || 'None' }}
+        p
+          strong Permissions:
+        ul(v-if="authStore.permissions.length")
+          li(v-for="perm in authStore.permissions" :key="`${perm.resource}:${perm.action}`") {{ perm.resource }}:{{ perm.action }}
+        p(v-else) No permissions assigned
+    .not-authenticated(v-else)
+      h2 Not Logged In
+      p Click the Login button to authenticate with Keycloak.
+      button.btn-primary(@click="authStore.login()") Login Now
+  .features
+    h3 Example Features
+    .feature-grid
+      RouterLink.feature-card(to="/public")
+        h4 Public API
+        p Call public API endpoints without authentication
+      RouterLink.feature-card(to="/protected")
+        h4 Protected API
+        p Call API endpoints that require authentication
+      RouterLink.feature-card(v-if="authStore.hasPermission('admin-resource', 'view')" to="/admin")
+        h4 Admin API
+        p Call API endpoints that require specific permissions
 </template>
 
 <style scoped>

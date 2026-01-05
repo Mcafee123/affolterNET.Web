@@ -4,28 +4,10 @@ import { useAuthStore } from '@/stores/auth'
 const authStore = useAuthStore()
 </script>
 
-<template>
-  <button
-    v-if="authStore.loading"
-    class="btn btn-loading"
-    disabled
-  >
-    Loading...
-  </button>
-  <button
-    v-else-if="authStore.isAuthenticated"
-    class="btn btn-logout"
-    @click="authStore.logout"
-  >
-    Logout
-  </button>
-  <button
-    v-else
-    class="btn btn-login"
-    @click="authStore.login()"
-  >
-    Login
-  </button>
+<template lang="pug">
+button.btn.btn-loading(v-if="authStore.loading" disabled) Loading...
+button.btn.btn-logout(v-else-if="authStore.isAuthenticated" @click="authStore.logout") Logout
+button.btn.btn-login(v-else @click="authStore.login()") Login
 </template>
 
 <style scoped>

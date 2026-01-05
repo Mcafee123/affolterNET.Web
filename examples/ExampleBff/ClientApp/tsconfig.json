@@ -1,4 +1,7 @@
 {
+  "vueCompilerOptions": {
+    "plugins": ["@vue/language-plugin-pug"]
+  },
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,

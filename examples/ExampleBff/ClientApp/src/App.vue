@@ -10,13 +10,11 @@ onMounted(async () => {
 })
 </script>
 
-<template>
-  <div class="app">
-    <NavBar />
-    <main class="main-content">
-      <RouterView />
-    </main>
-  </div>
+<template lang="pug">
+.app
+  NavBar
+  main.main-content
+    RouterView
 </template>
 
 <style scoped>

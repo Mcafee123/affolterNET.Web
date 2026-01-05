@@ -5,32 +5,18 @@ import LoginButton from './LoginButton.vue'
 const authStore = useAuthStore()
 </script>
 
-<template>
-  <nav class="navbar">
-    <div class="navbar-brand">
-      <RouterLink to="/" class="brand-link">Example BFF</RouterLink>
-    </div>
-
-    <div class="navbar-menu">
-      <RouterLink to="/" class="nav-link">Home</RouterLink>
-      <RouterLink to="/public" class="nav-link">Public API</RouterLink>
-      <RouterLink to="/protected" class="nav-link">Protected</RouterLink>
-      <RouterLink
-        v-if="authStore.hasPermission('admin-resource', 'view')"
-        to="/admin"
-        class="nav-link"
-      >
-        Admin
-      </RouterLink>
-    </div>
-
-    <div class="navbar-auth">
-      <span v-if="authStore.isAuthenticated" class="user-info">
-        {{ authStore.email || authStore.username }}
-      </span>
-      <LoginButton />
-    </div>
-  </nav>
+<template lang="pug">
+nav.navbar
+  .navbar-brand
+    RouterLink.brand-link(to="/") Example BFF
+  .navbar-menu
+    RouterLink.nav-link(to="/") Home
+    RouterLink.nav-link(to="/public") Public API
+    RouterLink.nav-link(to="/protected") Protected
+    RouterLink.nav-link(v-if="authStore.hasPermission('admin-resource', 'view')" to="/admin") Admin
+  .navbar-auth
+    span.user-info(v-if="authStore.isAuthenticated") {{ authStore.email || authStore.username }}
+    LoginButton
 </template>
 
 <style scoped>

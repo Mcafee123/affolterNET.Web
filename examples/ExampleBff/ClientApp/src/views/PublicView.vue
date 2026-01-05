@@ -36,32 +36,20 @@ async function callHealthApi() {
 }
 </script>
 
-<template>
-  <div class="public-view">
-    <h1>Public API</h1>
-    <p class="description">
-      These endpoints are accessible without authentication.
-      The requests are proxied through the BFF via YARP to the API.
-    </p>
-
-    <div class="actions">
-      <button class="btn" @click="callPublicApi" :disabled="loading">
-        Call /api/public
-      </button>
-      <button class="btn" @click="callHealthApi" :disabled="loading">
-        Call /api/public/health
-      </button>
-    </div>
-
-    <div v-if="loading" class="loading">Loading...</div>
-
-    <div v-if="error" class="error">{{ error }}</div>
-
-    <div v-if="response" class="response">
-      <h3>Response</h3>
-      <pre>{{ JSON.stringify(response, null, 2) }}</pre>
-    </div>
-  </div>
+<template lang="pug">
+.public-view
+  h1 Public API
+  p.description
+    | These endpoints are accessible without authentication.
+    | The requests are proxied through the BFF via YARP to the API.
+  .actions
+    button.btn(@click="callPublicApi" :disabled="loading") Call /api/public
+    button.btn(@click="callHealthApi" :disabled="loading") Call /api/public/health
+  .loading(v-if="loading") Loading...
+  .error(v-if="error") {{ error }}
+  .response(v-if="response")
+    h3 Response
+    pre {{ JSON.stringify(response, null, 2) }}
 </template>
 
 <style scoped>
