@@ -1,0 +1,8 @@
+{
+  "name": "affolternet-web-api",
+  "description": "Claude Code skills for affolterNET.Web.Api - JWT Bearer authentication with Keycloak integration for ASP.NET Core APIs",
+  "version": "1.0.0",
+  "author": {
+    "name": "affolterNET"
+  }
+}
