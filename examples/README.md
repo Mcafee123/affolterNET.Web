@@ -25,9 +25,11 @@ cp .env.example .env
 # Start all services (Keycloak, API, BFF)
 docker-compose up -d
 
-# Wait for Keycloak to be healthy (may take 30-60 seconds)
-docker-compose logs -f keycloak
+# Watch startup (optional)
+docker-compose logs -f
 ```
+
+> **Note**: The `keycloak-init` container automatically fixes Keycloak authorization permissions after realm import. The API and BFF services wait for this to complete before starting.
 
 ### Access Points
 

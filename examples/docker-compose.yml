@@ -27,6 +27,23 @@ services:
     networks:
       - example-network
 
+  keycloak-init:
+    image: python:3.12-alpine
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    environment:
+      - KEYCLOAK_URL=https://keycloak:8443
+      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN:-admin}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      - SSL_CERT_FILE=/certs/rootCA.pem
+    volumes:
+      - ./keycloak/fix-permissions.sh:/fix-permissions.sh:ro
+      - ./certs:/certs:ro
+    entrypoint: ["/bin/sh", "-c", "apk add --no-cache curl bash && bash /fix-permissions.sh"]
+    networks:
+      - example-network
+
   example-api:
     build:
       context: ..
@@ -51,6 +68,8 @@ services:
     depends_on:
       keycloak:
         condition: service_healthy
+      keycloak-init:
+        condition: service_completed_successfully
     networks:
       - example-network
 
@@ -81,6 +100,8 @@ services:
     depends_on:
       keycloak:
         condition: service_healthy
+      keycloak-init:
+        condition: service_completed_successfully
       example-api:
         condition: service_started
     networks:

@@ -32,7 +32,23 @@
         "name": "viewer",
         "description": "Read-only viewer role"
       }
-    ]
+    ],
+    "client": {
+      "bff-client": [
+        {
+          "name": "admin",
+          "description": "Administrator role for authorization"
+        },
+        {
+          "name": "user",
+          "description": "Standard user role for authorization"
+        },
+        {
+          "name": "viewer",
+          "description": "Read-only viewer role for authorization"
+        }
+      ]
+    }
   },
   "users": [
     {
@@ -49,7 +65,10 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["admin", "user", "viewer"]
+      "realmRoles": ["admin", "user", "viewer"],
+      "clientRoles": {
+        "bff-client": ["admin", "user", "viewer"]
+      }
     },
     {
       "username": "user@example.com",
@@ -65,7 +84,10 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["user", "viewer"]
+      "realmRoles": ["user", "viewer"],
+      "clientRoles": {
+        "bff-client": ["user", "viewer"]
+      }
     },
     {
       "username": "viewer@example.com",
@@ -81,7 +103,10 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["viewer"]
+      "realmRoles": ["viewer"],
+      "clientRoles": {
+        "bff-client": ["viewer"]
+      }
     }
   ],
   "clients": [
@@ -153,7 +178,7 @@
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "roles": "[{\"id\":\"admin\",\"required\":true}]"
+              "roles": "[{\"id\":\"bff-client/admin\",\"required\":true}]"
             }
           },
           {
@@ -162,7 +187,7 @@
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "roles": "[{\"id\":\"user\",\"required\":true}]"
+              "roles": "[{\"id\":\"bff-client/user\",\"required\":true}]"
             }
           },
           {
@@ -171,7 +196,7 @@
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "roles": "[{\"id\":\"viewer\",\"required\":true}]"
+              "roles": "[{\"id\":\"bff-client/viewer\",\"required\":true}]"
             }
           },
           {
@@ -435,6 +460,21 @@
             "multivalued": "true",
             "id.token.claim": "true",
             "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "client roles (bff-client)",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "claim.name": "resource_access.${client_id}.roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "usermodel.clientRoleMapping.clientId": "bff-client"
           }
         },
         {
