@@ -5,19 +5,18 @@
     "email": "info@affolternet.ch"
   },
   "metadata": {
-    "description": "Claude Code plugins for affolterNET.Web authentication and authorization libraries",
-    "pluginRoot": "plugins"
+    "description": "Claude Code plugins for affolterNET.Web authentication and authorization libraries"
   },
   "plugins": [
     {
       "name": "affolternet-web-api",
-      "source": "./affolternet-web-api",
+      "source": "plugins/affolternet-web-api",
       "description": "API authentication with JWT Bearer tokens and Keycloak integration",
       "version": "1.0.0"
     },
     {
       "name": "affolternet-web-bff",
-      "source": "./affolternet-web-bff",
+      "source": "plugins/affolternet-web-bff",
       "description": "BFF authentication with cookie-based OIDC, YARP reverse proxy, and SPA integration",
       "version": "1.0.0"
     }
