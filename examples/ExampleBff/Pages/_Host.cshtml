@@ -1,0 +1,79 @@
+@page "/{**path}"
+@namespace ExampleBff.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@inject IWebHostEnvironment Environment
+@{
+    var webRoot = Environment.WebRootPath ?? string.Empty;
+    var indexPath = System.IO.Path.Combine(webRoot, "index.html");
+    var hasBuiltSpa = System.IO.File.Exists(indexPath);
+
+    if (hasBuiltSpa)
+    {
+        // In production, serve the built index.html directly
+        var indexContent = await System.IO.File.ReadAllTextAsync(indexPath);
+        @Html.Raw(indexContent)
+        return;
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Example BFF - Development</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 500px;
+        }
+        h1 { color: #1976d2; margin-bottom: 1rem; }
+        p { color: #666; margin: 0.5rem 0; }
+        pre {
+            background: #263238;
+            color: #aed581;
+            padding: 1rem;
+            border-radius: 4px;
+            text-align: left;
+            overflow-x: auto;
+        }
+        a {
+            color: #1976d2;
+            text-decoration: none;
+        }
+        a:hover { text-decoration: underline; }
+        .note {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vue Dev Server Required</h1>
+        <p>For local development, start the Vue dev server:</p>
+        <pre>cd ClientApp
+npm install
+npm run dev</pre>
+        <p>Then access the app at <a href="http://localhost:5173">http://localhost:5173</a></p>
+        <div class="note">
+            <p>The BFF backend is running. The Vue dev server proxies API calls to this server.</p>
+            <p>For production builds, run <code>npm run build</code> in ClientApp.</p>
+        </div>
+    </div>
+</body>
+</html>

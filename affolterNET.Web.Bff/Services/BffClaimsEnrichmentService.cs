@@ -5,12 +5,15 @@ using Microsoft.Extensions.Logging;
 using affolterNET.Web.Core.Services;
 using affolterNET.Web.Core.Models;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication;
 
 namespace affolterNET.Web.Bff.Services;
 
 public class BffClaimsEnrichmentService(
     IPermissionService permissionService,
     IOptions<OidcClaimTypeOptions> oidcClaimTypeOptions,
+    IHttpContextAccessor httpContextAccessor,
     ILogger<BffClaimsEnrichmentService> logger)
     : IClaimsEnrichmentService
 {
@@ -32,7 +35,23 @@ public class BffClaimsEnrichmentService(
             .ToList();
 
         // Get access token from authentication properties if not provided
-        accessToken ??= principal.FindFirst("access_token")?.Value;
+        if (string.IsNullOrEmpty(accessToken))
+        {
+            accessToken = principal.FindFirst("access_token")?.Value;
+
+            // Fall back to HttpContext authentication properties
+            if (string.IsNullOrEmpty(accessToken) && httpContextAccessor.HttpContext != null)
+            {
+                try
+                {
+                    accessToken = await httpContextAccessor.HttpContext.GetTokenAsync("access_token");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Failed to get access token from authentication properties");
+                }
+            }
+        }
 
         var permissions = Array.Empty<Permission>();
         if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(userId))

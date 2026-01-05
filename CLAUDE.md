@@ -279,6 +279,26 @@ See `.claude/skills/csharp-coding-style/SKILL.md` for detailed C# coding convent
 - Nullable reference types enabled, guard clauses at method start
 - XML docs on public members, inline comments explain "why" not "what"
 
+## Development Certificates
+
+See `.claude/skills/development-certificates/SKILL.md` for SSL/TLS certificate configuration. Key points:
+
+- Use `mkcert` for locally-trusted development certificates
+- ASP.NET Kestrel requires PFX format (convert with `openssl pkcs12`)
+- Keycloak uses PEM files directly
+- Firefox/Zen may need manual CA import from `$(mkcert -CAROOT)/rootCA.pem`
+- Docker: use stop/start (not restart) when updating mounted certificates
+
+## Keycloak Configuration
+
+See `.claude/skills/keycloak-configuration/SKILL.md` for Keycloak identity provider setup. Key points:
+
+- Standard OIDC client scopes must be explicitly defined in JSON realm imports
+- Roles mapper must use flat `claim.name: "roles"`, not nested `realm_access.roles`
+- Default client scopes should NOT be requested explicitly in OIDC scope parameter
+- Authorization services (RPT-based permissions) often require manual configuration via Admin Console
+- Docker containers need custom CA installed via entrypoint script for HTTPS communication
+
 ## Working with This Codebase
 
 ### Adding New Features
