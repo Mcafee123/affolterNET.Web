@@ -280,12 +280,17 @@ Cypress is configured with `chromeWebSecurity: false` to handle self-signed cert
 
 ### Keycloak Permission Tests Failing
 
-RPT-based permission tests may fail if authorization services weren't properly configured. See `.claude/skills/keycloak-configuration/SKILL.md` for details on configuring authorization services manually.
+RPT-based permission tests may fail if authorization services weren't properly configured. The `keycloak-init` container should automatically run `fix-permissions.sh` to configure these. If tests still fail:
+
+1. Check that `keycloak-init` completed successfully: `docker-compose logs keycloak-init`
+2. Run the fix script manually: `cd examples/keycloak && KEYCLOAK_URL=https://localhost:8443 ./fix-permissions.sh`
+3. See `.claude/skills/keycloak-configuration/SKILL.md` for manual configuration details
 
 ## Related Files
 
-- `examples/docker-compose.yml` - Docker services (Keycloak, API, BFF)
+- `examples/docker-compose.yml` - Docker services (Keycloak, keycloak-init, API, BFF)
 - `examples/keycloak/realm-export.json` - Keycloak realm configuration
+- `examples/keycloak/fix-permissions.sh` - Script to fix authorization permissions
 - `examples/ExampleBff/` - BFF application under test
 - `examples/ExampleApi/` - API application under test
 - `.claude/skills/keycloak-configuration/SKILL.md` - Keycloak setup guide

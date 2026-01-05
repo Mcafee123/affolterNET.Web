@@ -283,9 +283,48 @@ The role policies reference roles by name (e.g., `"id": "admin"`), but Keycloak'
 Error fetching RPT: {"error":"access_denied","error_description":"not_authorized"}
 ```
 
-#### Workaround
+#### Solution: Automated Permission Fix Script
 
-Configure authorization services manually via the Keycloak Admin Console:
+The repository includes `examples/keycloak/fix-permissions.sh` that automatically recreates scope-based permissions with proper resource/scope/policy links after realm import.
+
+**Docker Compose Integration:**
+
+The `keycloak-init` container runs automatically after Keycloak starts:
+
+```yaml
+keycloak-init:
+  image: python:3.12-alpine
+  depends_on:
+    keycloak:
+      condition: service_healthy
+  environment:
+    - KEYCLOAK_URL=https://keycloak:8443
+    - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN:-admin}
+    - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    - SSL_CERT_FILE=/certs/rootCA.pem
+  volumes:
+    - ./keycloak/fix-permissions.sh:/fix-permissions.sh:ro
+    - ./certs:/certs:ro
+  entrypoint: ["/bin/sh", "-c", "apk add --no-cache curl bash && bash /fix-permissions.sh"]
+```
+
+**Running Manually (local development):**
+
+```bash
+cd examples/keycloak
+KEYCLOAK_URL=https://localhost:8443 ./fix-permissions.sh
+```
+
+The script:
+1. Waits for Keycloak health check
+2. Gets admin token
+3. Deletes broken scope permissions
+4. Recreates permissions with proper resource/scope/policy UUID links
+5. Verifies RPT token acquisition
+
+#### Fallback: Manual Configuration
+
+If automated fix doesn't work, configure via Keycloak Admin Console:
 
 1. Open Keycloak Admin Console (https://localhost:8443)
 2. Select your realm (e.g., "demo")
@@ -295,6 +334,40 @@ Configure authorization services manually via the Keycloak Admin Console:
 
 ## Docker Configuration
 
+### Keycloak Container
+
+```yaml
+keycloak:
+  image: quay.io/keycloak/keycloak:26.0
+  environment:
+    - KC_BOOTSTRAP_ADMIN_USERNAME=${KEYCLOAK_ADMIN:-admin}
+    - KC_BOOTSTRAP_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    - KC_HEALTH_ENABLED=true
+    - KC_HTTPS_CERTIFICATE_FILE=/opt/keycloak/conf/server.crt.pem
+    - KC_HTTPS_CERTIFICATE_KEY_FILE=/opt/keycloak/conf/server.key.pem
+    - KC_HOSTNAME=https://localhost:8443
+    - KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true
+    - KC_HTTP_ENABLED=true
+    - KC_LEGACY_OBSERVABILITY_INTERFACE=true
+  command: start --import-realm --https-port=8443 --http-port=8080
+  volumes:
+    - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    - ./certs:/opt/keycloak/conf:ro
+  healthcheck:
+    test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080;echo -e 'GET /health/ready HTTP/1.1\\r\\nhost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3;if [ $? -eq 0 ]; then exit 0; else exit 1; fi"]
+    interval: 10s
+    timeout: 5s
+    retries: 10
+    start_period: 30s
+```
+
+**Configuration Notes:**
+- `KC_BOOTSTRAP_ADMIN_USERNAME` / `KC_BOOTSTRAP_ADMIN_PASSWORD` - Admin credentials
+- `KC_HOSTNAME` - Full URL including protocol (hostname v2 format)
+- `KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true` - Enables dynamic backchannel URLs for Docker internal networking
+- `KC_LEGACY_OBSERVABILITY_INTERFACE=true` - Exposes health endpoints on HTTP port
+- `start` command runs in production mode with `--import-realm` for initial setup
+
 ### HTTPS with Custom CA (mkcert)
 
 For internal Docker communication with HTTPS:
@@ -303,7 +376,7 @@ For internal Docker communication with HTTPS:
 2. Mount certificates to containers
 3. Install CA in container trust store
 
-#### docker-compose.yml
+#### ASP.NET Application Configuration
 
 ```yaml
 example-bff:
@@ -365,7 +438,14 @@ ENTRYPOINT ["/docker-entrypoint.sh"]
 
 **Cause**: Authorization services not properly configured after JSON import.
 
-**Solution**: Configure authorization policies manually in Keycloak Admin Console, or use role-based authorization via standard OIDC claims instead of RPT-based permissions.
+**Solution**: Run the `fix-permissions.sh` script to recreate scope permissions with proper links:
+
+```bash
+cd examples/keycloak
+KEYCLOAK_URL=https://localhost:8443 ./fix-permissions.sh
+```
+
+In Docker, the `keycloak-init` container runs this automatically. If the script fails, configure authorization policies manually in Keycloak Admin Console.
 
 ### Certificate Trust Issues in Docker
 
@@ -405,6 +485,7 @@ realm-export.json
 ## Related Files
 
 - `examples/keycloak/realm-export.json` - Full realm configuration
-- `examples/docker-compose.yml` - Docker service configuration
+- `examples/keycloak/fix-permissions.sh` - Script to fix authorization permissions after import
+- `examples/docker-compose.yml` - Docker service configuration (includes keycloak-init container)
 - `examples/ExampleBff/appsettings.json` - BFF OIDC configuration
 - `examples/ExampleApi/appsettings.json` - API JWT Bearer configuration

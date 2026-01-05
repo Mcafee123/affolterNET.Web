@@ -296,7 +296,7 @@ See `.claude/skills/keycloak-configuration/SKILL.md` for Keycloak identity provi
 - Standard OIDC client scopes must be explicitly defined in JSON realm imports
 - Roles mapper must use flat `claim.name: "roles"`, not nested `realm_access.roles`
 - Default client scopes should NOT be requested explicitly in OIDC scope parameter
-- Authorization services (RPT-based permissions) often require manual configuration via Admin Console
+- Authorization services (RPT-based permissions) are auto-configured by `keycloak-init` container via `fix-permissions.sh`
 - Docker containers need custom CA installed via entrypoint script for HTTPS communication
 
 ## Cypress E2E Tests
