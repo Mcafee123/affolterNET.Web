@@ -419,3 +419,6 @@ examples/certs/
 # Cypress test outputs
 examples/e2e-tests/cypress/screenshots/
 examples/e2e-tests/cypress/videos/
+
+# Vue SPA build output
+examples/ExampleBff/wwwroot/
