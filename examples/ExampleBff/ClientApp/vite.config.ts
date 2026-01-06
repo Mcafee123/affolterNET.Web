@@ -22,33 +22,11 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    https: true,
-    proxy: {
-      '/api': {
-        target: 'https://localhost:5004',
-        changeOrigin: true,
-        secure: false
-      },
-      '/bff': {
-        target: 'https://localhost:5004',
-        changeOrigin: true,
-        secure: false
-      },
-      '/signin-oidc': {
-        target: 'https://localhost:5004',
-        changeOrigin: true,
-        secure: false
-      },
-      '/signout-callback-oidc': {
-        target: 'https://localhost:5004',
-        changeOrigin: true,
-        secure: false
-      },
-      '/health': {
-        target: 'https://localhost:5004',
-        changeOrigin: true,
-        secure: false
-      }
+    // Configure HMR to work when accessed via BFF proxy at https://localhost:5004
+    hmr: {
+      host: 'localhost',
+      clientPort: 5004,  // Browser connects to BFF on 5004
+      protocol: 'wss'    // BFF uses HTTPS, so WebSocket is wss://
     }
   }
 })

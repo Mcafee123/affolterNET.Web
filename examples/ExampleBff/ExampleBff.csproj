@@ -10,4 +10,9 @@
     <ProjectReference Include="../../affolterNET.Web.Bff/affolterNET.Web.Bff.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Pages\Error.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\_Host.cshtml" />
+  </ItemGroup>
+
 </Project>
