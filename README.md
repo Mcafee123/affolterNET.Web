@@ -118,7 +118,7 @@ This library provides flexible authentication and authorization modes for ASP.NE
 │ ✅ AntiforgeryTokenMiddleware    │ CSRF protection                              │
 │ ✅ HTTP Context Accessor         │ Core infrastructure                          │
 │ ✅ Memory Cache                  │ Performance & caching                        │
-│ ✅ YARP Reverse Proxy           │ Frontend/API proxying                         │
+│ ✅ YARP Reverse Proxy            │ Frontend/API proxying                        │
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────────┐
