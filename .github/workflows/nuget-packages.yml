@@ -7,12 +7,6 @@ on:
       - '**/*.csproj'
       - '**/*.cs'
       - '.github/workflows/nuget-packages.yml'
-  # pull_request:
-  #   branches: [ develop, main ]
-  #   paths:
-  #     - '**/*.csproj'
-  #     - '**/*.cs'
-  #     - '.github/workflows/nuget-packages.yml'
   workflow_dispatch:
     inputs:
       publish_to_nuget:
