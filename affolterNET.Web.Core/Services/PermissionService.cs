@@ -138,37 +138,78 @@ public class PermissionService(
 
     private IReadOnlyList<Permission> ExtractPermissionsFromRpt(JwtSecurityToken rptToken)
     {
+        var authorizationClaim = rptToken.Claims.FirstOrDefault(c => c.Type == "authorization");
+        if (authorizationClaim == null)
+        {
+            return [];
+        }
+
+        return ExtractPermissionsFromAuthorizationClaim(authorizationClaim.Value);
+    }
+
+    /// <summary>
+    /// Extracts permissions from a Keycloak RPT authorization claim JSON.
+    /// Internal for testing purposes.
+    /// </summary>
+    /// <param name="authorizationClaimValue">The JSON value of the 'authorization' claim from an RPT token</param>
+    /// <returns>List of Permission objects extracted from the claim</returns>
+    internal static IReadOnlyList<Permission> ExtractPermissionsFromAuthorizationClaim(string authorizationClaimValue)
+    {
         var permissions = new List<Permission>();
 
         try
         {
-            var authorizationClaim = rptToken.Claims.FirstOrDefault(c => c.Type == "authorization");
-            if (authorizationClaim == null)
-            {
-                return permissions;
-            }
-
-            using var document = JsonDocument.Parse(authorizationClaim.Value);
+            using var document = JsonDocument.Parse(authorizationClaimValue);
             var root = document.RootElement;
 
             if (root.TryGetProperty("permissions", out var permissionsElement))
             {
                 foreach (var permission in permissionsElement.EnumerateArray())
                 {
-                    if (permission.TryGetProperty("rsname", out var resourceName) &&
-                        permission.TryGetProperty("scopes", out var scopesArray))
+                    if (permission.TryGetProperty("rsname", out var resourceName))
                     {
                         var resource = resourceName.GetString() ?? string.Empty;
-                        
-                        foreach (var scope in scopesArray.EnumerateArray())
+
+                        // Extract scopes if present
+                        if (permission.TryGetProperty("scopes", out var scopesArray))
                         {
-                            var action = scope.GetString() ?? string.Empty;
-                            
+                            var hasScopes = false;
+                            foreach (var scope in scopesArray.EnumerateArray())
+                            {
+                                var action = scope.GetString();
+                                if (!string.IsNullOrEmpty(action))
+                                {
+                                    permissions.Add(new Permission
+                                    {
+                                        Resource = resource,
+                                        Action = action,
+                                        Scope = action,
+                                        Attributes = new Dictionary<string, object>()
+                                    });
+                                    hasScopes = true;
+                                }
+                            }
+
+                            // Empty scopes array - add resource only
+                            if (!hasScopes)
+                            {
+                                permissions.Add(new Permission
+                                {
+                                    Resource = resource,
+                                    Action = string.Empty,
+                                    Scope = string.Empty,
+                                    Attributes = new Dictionary<string, object>()
+                                });
+                            }
+                        }
+                        else
+                        {
+                            // No scopes property - add resource only
                             permissions.Add(new Permission
                             {
                                 Resource = resource,
-                                Action = action,
-                                Scope = action, // For backward compatibility
+                                Action = string.Empty,
+                                Scope = string.Empty,
                                 Attributes = new Dictionary<string, object>()
                             });
                         }
@@ -176,9 +217,9 @@ public class PermissionService(
                 }
             }
         }
-        catch (JsonException ex)
+        catch (JsonException)
         {
-            logger.LogWarning(ex, "Failed to parse authorization claim from RPT token");
+            // Return empty list on parse failure
         }
 
         return permissions;
