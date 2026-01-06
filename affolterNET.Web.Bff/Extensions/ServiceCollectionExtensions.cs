@@ -5,6 +5,7 @@ using affolterNET.Web.Bff.Options;
 using affolterNET.Web.Bff.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using affolterNET.Web.Core.Extensions;
@@ -90,6 +91,59 @@ public static class ServiceCollectionExtensions
                 options.LoginPath = "/bff/account/login";
                 options.LogoutPath = "/bff/account/logout";
                 options.AccessDeniedPath = "/bff/access-denied";
+
+                // BFF pattern: Return 403 JSON for API routes instead of redirecting to access denied page
+                options.Events = new CookieAuthenticationEvents
+                {
+                    OnRedirectToAccessDenied = context =>
+                    {
+                        var path = context.Request.Path.Value ?? string.Empty;
+
+                        // Check if this is an API route
+                        if (bffOptions.Bff.ApiRoutePrefixes.Any(prefix =>
+                            path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            context.Response.StatusCode = 403;
+                            context.Response.ContentType = "application/json";
+                            return context.Response.WriteAsJsonAsync(new
+                            {
+                                error = "Forbidden",
+                                message = "You do not have permission to access this resource",
+                                statusCode = 403,
+                                path,
+                                timestamp = DateTimeOffset.UtcNow
+                            });
+                        }
+
+                        // For non-API routes, allow the redirect
+                        context.Response.Redirect(context.RedirectUri);
+                        return Task.CompletedTask;
+                    },
+                    OnRedirectToLogin = context =>
+                    {
+                        var path = context.Request.Path.Value ?? string.Empty;
+
+                        // Check if this is an API route
+                        if (bffOptions.Bff.ApiRoutePrefixes.Any(prefix =>
+                            path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            context.Response.StatusCode = 401;
+                            context.Response.ContentType = "application/json";
+                            return context.Response.WriteAsJsonAsync(new
+                            {
+                                error = "Unauthorized",
+                                message = "Authentication required",
+                                statusCode = 401,
+                                path,
+                                timestamp = DateTimeOffset.UtcNow
+                            });
+                        }
+
+                        // For non-API routes, allow the redirect
+                        context.Response.Redirect(context.RedirectUri);
+                        return Task.CompletedTask;
+                    }
+                };
             })
             .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {

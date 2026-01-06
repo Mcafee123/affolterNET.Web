@@ -1,5 +1,33 @@
 /// <reference types="cypress" />
 
+describe('BFF Health Check Priority over YARP', () => {
+  // These tests verify health checks work even with a YARP catch-all route (/{**catch-all})
+  // pointing to a non-existent backend. If health checks were proxied, we'd get 502.
+
+  it('should return health check response from /health/ready, not proxied', () => {
+    cy.request({
+      url: '/health/ready',
+      failOnStatusCode: false
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+      expect(response.body).to.have.property('status')
+      expect(response.body.status).to.eq('Healthy')
+    })
+  })
+
+  it('should return startup health check from BFF', () => {
+    cy.request('/health/startup').then((response) => {
+      expect(response.status).to.eq(200)
+    })
+  })
+
+  it('should return liveness health check from BFF', () => {
+    cy.request('/health/live').then((response) => {
+      expect(response.status).to.eq(200)
+    })
+  })
+})
+
 describe('Public API', () => {
   const apiUrl = Cypress.env('apiUrl')
 

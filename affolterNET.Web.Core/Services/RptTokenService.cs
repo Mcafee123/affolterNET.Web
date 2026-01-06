@@ -1,4 +1,5 @@
 using affolterNET.Web.Core.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NETCore.Keycloak.Client.HttpClients.Abstraction;
 using NETCore.Keycloak.Client.Models.Tokens;
@@ -8,7 +9,8 @@ namespace affolterNET.Web.Core.Services;
 public class RptTokenService(
     IKeycloakClient keycloakClient,
     IOptionsMonitor<RptOptions> rptOptions,
-    IOptionsMonitor<AuthProviderOptions> authProviderOptions)
+    IOptionsMonitor<AuthProviderOptions> authProviderOptions,
+    ILogger<RptTokenService> logger)
 {
     private readonly RptOptions _rptConfig = rptOptions.CurrentValue;
     private readonly AuthProviderOptions _authProviderConfig = authProviderOptions.CurrentValue;
@@ -26,14 +28,15 @@ public class RptTokenService(
 
     public async Task<KcIdentityProviderToken?> GetRptTokenAsync(string accessToken)
     {
+        logger.LogDebug("Fetching RPT token for realm={Realm}, audience={Audience}", Realm, Audience);
         var response = await keycloakClient.Auth.GetRequestPartyTokenAsync(Realm, accessToken, Audience);
         if (response.IsError)
         {
-            var responseError = response.ErrorMessage;
-            Console.WriteLine($"Error fetching RPT: {responseError}");
+            logger.LogWarning("Error fetching RPT: {Error}", response.ErrorMessage);
             return null;
         }
 
+        logger.LogDebug("RPT token fetched successfully");
         return response.Response;
     }
 }

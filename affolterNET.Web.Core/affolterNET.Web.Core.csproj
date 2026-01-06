@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>affolterNET.Web.Core</PackageId>
-    <Version>0.3.16</Version>
+    <Version>0.3.19</Version>
     <Authors>affolterNET</Authors>
     <Description>Core authentication and authorization components for web applications</Description>
     
@@ -20,6 +20,10 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>See https://github.com/Mcafee123/affolterNET.Web/commits for recent changes.</PackageReleaseNotes>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="affolterNET.Web.Core.Test" />
+  </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

@@ -70,7 +70,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<TokenHelper>();
         services.AddScoped<RptTokenService>();
         services.AddSingleton<RptCacheService>();
-        services.AddScoped<AuthClaimsService>();
         services.AddScoped<IPermissionService, PermissionService>();
 
         return services;

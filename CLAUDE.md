@@ -14,6 +14,9 @@ The repository contains three NuGet packages with dependency hierarchy:
 - **affolterNET.Web.Api** - API package (depends on Core) for stateless JWT Bearer authentication
 - **affolterNET.Web.Bff** - BFF package (depends on Core) for stateful cookie-based auth with YARP reverse proxy
 
+Test projects are in `Tests/`:
+- `affolterNET.Web.Core.Test`, `affolterNET.Web.Api.Test`, `affolterNET.Web.Bff.Test`
+
 ## Development Commands
 
 ### Building and Testing
@@ -30,7 +33,7 @@ dotnet build affolterNET.Web.Bff/affolterNET.Web.Bff.csproj --configuration Rele
 # Build entire solution
 dotnet build affolterNET.Web.sln --configuration Release
 
-# Run tests (if test projects exist)
+# Run tests
 dotnet test --configuration Release --no-build --verbosity normal
 ```
 
@@ -309,6 +312,15 @@ See `.claude/skills/cypress-e2e-tests/SKILL.md` for end-to-end testing with Cypr
 - Three test users: admin, user, viewer with different permission levels
 - Run with `npm run cy:open` (interactive) or `npm run test` (headless)
 - Requires Docker containers running (Keycloak, API, BFF)
+
+## Development Workflow
+
+See `.claude/skills/development-workflow/SKILL.md` for local development setup. Key points:
+
+- **Development mode**: BFF proxies to Vite dev server for HMR (hot module replacement)
+- **Production/Docker mode**: BFF serves pre-built static files from `wwwroot/`
+- YARP routes in `appsettings.Development.json` proxy Vite paths (`@vite`, `src`, `assets`, etc.)
+- CSP disabled in development (Vite injects inline styles)
 
 ## Working with This Codebase
 

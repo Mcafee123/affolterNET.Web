@@ -112,22 +112,39 @@ The `ConfigureApiApp` method configures middleware in this order:
 
 ## Permission-Based Authorization
 
-Uses dynamic policy provider pattern with Keycloak RPT tokens:
+Uses dynamic policy provider pattern with Keycloak RPT tokens.
+
+### Using RequirePermission Attribute (Recommended)
 
 ```csharp
-[Authorize(Policy = "admin-resource")]
+[RequirePermission("admin-resource:view")]
 [HttpGet("admin")]
 public IActionResult AdminEndpoint() { ... }
 
-// Multiple permissions (comma-separated)
-[Authorize(Policy = "resource1,resource2")]
+// Multiple permissions (any match)
+[RequirePermission("admin-resource:manage", "user-resource:delete")]
 [HttpGet("multi")]
 public IActionResult MultiPermissionEndpoint() { ... }
 ```
 
-Permissions are extracted from Keycloak RPT tokens with structure:
-- `{rsname: "resource", scopes: ["action1", "action2"]}`
-- Claims added as `Claim("permission", "resourceName:action")`
+### Using Authorize Policy (Alternative)
+
+```csharp
+[Authorize(Policy = "admin-resource:view")]
+[HttpGet("admin")]
+public IActionResult AdminEndpoint() { ... }
+
+// Multiple permissions (comma-separated)
+[Authorize(Policy = "admin-resource:view,user-resource:read")]
+[HttpGet("multi")]
+public IActionResult MultiPermissionEndpoint() { ... }
+```
+
+### Permission Claims Format
+
+Permissions extracted from Keycloak RPT tokens are added as claims:
+- Claim type: `"permission"`
+- Claim value: `"{resource}:{scope}"` (e.g., `"admin-resource:view"`)
 
 ## Health Check Endpoints
 

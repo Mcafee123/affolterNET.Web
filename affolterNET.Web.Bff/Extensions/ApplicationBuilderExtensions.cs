@@ -41,6 +41,12 @@ public static class ApplicationBuilderExtensions
             app.UseHttpsRedirection();
         }
 
+        // 3.5. WEBSOCKETS (Required for YARP to proxy WebSocket connections, e.g., Vite HMR)
+        if (bffOptions.IsDev)
+        {
+            app.UseWebSockets();
+        }
+
         // 4. STATIC FILES
         if (bffOptions.Bff.EnableStaticFiles)
         {

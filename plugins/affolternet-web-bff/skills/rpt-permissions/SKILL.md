@@ -71,17 +71,31 @@ public IActionResult Management() => Ok();
 
 ## Permission Checking in Code
 
-### Controller Authorization
+### Using RequirePermission Attribute (Recommended)
 
 ```csharp
 // Single permission
-[Authorize(Policy = "admin-resource")]
+[RequirePermission("admin-resource:view")]
 public IActionResult AdminView() { ... }
 
-// With specific scope
-[Authorize(Policy = "admin-resource:manage")]
+// Multiple permissions (any match)
+[RequirePermission("admin-resource:manage", "user-resource:delete")]
 public IActionResult AdminManage() { ... }
 ```
+
+### Using Authorize Policy (Alternative)
+
+```csharp
+// Single permission
+[Authorize(Policy = "admin-resource:view")]
+public IActionResult AdminView() { ... }
+
+// Multiple permissions (comma-separated)
+[Authorize(Policy = "admin-resource:manage,user-resource:delete")]
+public IActionResult AdminManage() { ... }
+```
+
+**Note:** `RequirePermission` is a convenience wrapper that sets the Policy internally.
 
 ### Programmatic Check
 
@@ -127,6 +141,17 @@ const useAuthStore = defineStore('auth', {
     </button>
 </template>
 ```
+
+## Permission Claims Format
+
+When the RPT middleware processes permissions, it adds claims to the user identity:
+
+| Property | Value |
+|----------|-------|
+| Claim Type | `"permission"` |
+| Claim Value | `"{resource}:{scope}"` |
+
+Examples: `"admin-resource:view"`, `"user-resource:create"`
 
 ## Caching
 
