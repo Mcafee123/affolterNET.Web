@@ -209,15 +209,30 @@ if (response.status === 401) {
 
 ## Permission-Based Authorization
 
-Uses dynamic policy provider pattern with Keycloak RPT tokens:
+Uses dynamic policy provider pattern with Keycloak RPT tokens.
+
+### Using RequirePermission Attribute (Recommended)
 
 ```csharp
-[Authorize(Policy = "admin-resource")]
+[RequirePermission("admin-resource:view")]
+[HttpGet("admin")]
+public IActionResult AdminEndpoint() { ... }
+
+// Multiple permissions (any match)
+[RequirePermission("admin-resource:manage", "user-resource:delete")]
+[HttpGet("multi")]
+public IActionResult MultiPermissionEndpoint() { ... }
+```
+
+### Using Authorize Policy (Alternative)
+
+```csharp
+[Authorize(Policy = "admin-resource:view")]
 [HttpGet("admin")]
 public IActionResult AdminEndpoint() { ... }
 
 // Multiple permissions (comma-separated)
-[Authorize(Policy = "resource1,resource2")]
+[Authorize(Policy = "admin-resource:view,user-resource:read")]
 [HttpGet("multi")]
 public IActionResult MultiPermissionEndpoint() { ... }
 ```
