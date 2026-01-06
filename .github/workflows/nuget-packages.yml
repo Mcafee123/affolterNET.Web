@@ -114,22 +114,15 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
 
-    - name: Build projects
+    - name: Build solution
       run: |
         echo "Building with version: ${{ steps.version.outputs.version }}"
-        dotnet build affolterNET.Web.Core/affolterNET.Web.Core.csproj --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
-        dotnet build affolterNET.Web.Api/affolterNET.Web.Api.csproj --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
-        dotnet build affolterNET.Web.Bff/affolterNET.Web.Bff.csproj --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+        dotnet build affolterNET.Web.sln --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
 
     - name: Run tests
       run: |
-        # Run tests if test projects exist
-        if find . -name "*Test*.csproj" -o -name "*.Tests.csproj" | grep -q .; then
-          echo "Running tests..."
-          dotnet test --configuration ${{ env.BUILD_CONFIGURATION }} --no-build --verbosity normal --logger trx --results-directory ./test-results
-        else
-          echo "No test projects found, skipping tests"
-        fi
+        echo "Running tests..."
+        dotnet test affolterNET.Web.sln --configuration ${{ env.BUILD_CONFIGURATION }} --no-build --verbosity normal --logger trx --results-directory ./test-results
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
