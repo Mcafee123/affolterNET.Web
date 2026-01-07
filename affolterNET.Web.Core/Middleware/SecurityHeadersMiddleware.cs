@@ -127,11 +127,14 @@ public class SecurityHeadersMiddleware(
             imgSrc += " " + string.Join(" ", options.AllowedImageSources);
         directives.Add($"img-src {imgSrc}");
 
-        // Font sources
-        var fontSrc = "'self'";
-        if (options.AllowedFontSources.Count > 0)
-            fontSrc += " " + string.Join(" ", options.AllowedFontSources);
-        directives.Add($"font-src {fontSrc}");
+        // Font sources (skip if custom directive provided)
+        if (!options.CustomCspDirectives.ContainsKey("font-src"))
+        {
+            var fontSrc = "'self'";
+            if (options.AllowedFontSources.Count > 0)
+                fontSrc += " " + string.Join(" ", options.AllowedFontSources);
+            directives.Add($"font-src {fontSrc}");
+        }
 
         // Form actions
         var formAction = "'self'";
