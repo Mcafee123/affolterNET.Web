@@ -272,16 +272,6 @@ Both `ApiAppOptions` and `BffAppOptions` provide middleware customization hooks:
 - `ConfigureAfterRoutingCustomMiddleware` - Inject middleware after routing
 - `ConfigureBeforeEndpointsCustomMiddleware` - Inject middleware before endpoints
 
-## C# Coding Style
-
-See `.claude/skills/csharp-coding-style/SKILL.md` for detailed C# coding conventions. Key points:
-
-- C# 12 / .NET 9.0 with file-scoped namespaces and primary constructors
-- Private fields use `_camelCase`, async methods end with `Async`
-- 4-space indentation, K&R bracing style
-- Nullable reference types enabled, guard clauses at method start
-- XML docs on public members, inline comments explain "why" not "what"
-
 ## Development Certificates
 
 See `.claude/skills/development-certificates/SKILL.md` for SSL/TLS certificate configuration. Key points:
