@@ -4,25 +4,59 @@ This skill documents the local development setup for the BFF with Vite HMR (Hot 
 
 ## Overview
 
-Two modes of operation:
+Three modes of operation:
 
-| Mode | Frontend | When to Use |
-|------|----------|-------------|
-| **Development** | BFF proxies to Vite dev server | Local development with HMR |
-| **Production** | BFF serves static files from `wwwroot/` | Docker, deployed environments |
+| Mode | Infrastructure | Frontend | When to Use |
+|------|----------------|----------|-------------|
+| **Full Docker** | All in Docker | Built static files | E2E testing, CI/CD |
+| **Local Dev** | Keycloak in Docker | BFF + Vite local | Development with HMR |
+| **Production** | External | Built static files | Deployed environments |
 
-## Development Mode (Vite HMR)
+## Development Mode (Recommended)
 
-Run both BFF and Vite dev server:
+### Quick Start - Single Command
+
+Start everything with one command:
 
 ```bash
-# Terminal 1: Start Vite dev server
 cd examples/ExampleBff/ClientApp
-npm run dev
+npm run dev:full
+```
 
-# Terminal 2: Start BFF in development mode
-cd examples/ExampleBff
-dotnet run --environment Development
+This will:
+1. Start Keycloak + keycloak-init in Docker (background)
+2. Wait for Keycloak to be healthy
+3. Start BFF and Vite concurrently with colored output
+
+Access the app at `https://localhost:5004`
+
+### Available npm Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev:full` | Start everything: Keycloak + BFF + Vite |
+| `npm run dev` | Start Vite dev server only |
+| `npm run keycloak:start` | Start Keycloak in Docker |
+| `npm run keycloak:stop` | Stop Keycloak container |
+| `npm run keycloak:logs` | Follow Keycloak logs |
+| `npm run keycloak:wait` | Wait for Keycloak health check |
+| `npm run bff:start` | Start BFF with HTTPS (port 5004) |
+| `npm run build` | Build frontend to `../wwwroot/` |
+
+### Manual Setup (Separate Terminals)
+
+If you prefer running components separately:
+
+```bash
+# Terminal 1: Start Keycloak
+cd examples/ExampleBff/ClientApp
+npm run keycloak:start
+
+# Terminal 2: Start BFF
+npm run bff:start
+
+# Terminal 3: Start Vite dev server
+npm run dev
 ```
 
 Access the app at `https://localhost:5004` - the BFF proxies frontend requests to Vite.
@@ -119,7 +153,9 @@ docker compose up
 
 ## Related Files
 
+- `examples/ExampleBff/ClientApp/package.json` - npm scripts for development
 - `examples/ExampleBff/appsettings.Development.json` - Development YARP routes
 - `examples/ExampleBff/appsettings.json` - Production config
 - `examples/ExampleBff/ClientApp/vite.config.ts` - Vite HMR configuration
-- `examples/docker-compose.yml` - Docker production setup
+- `examples/ExampleBff/Properties/launchSettings.json` - BFF launch profiles
+- `examples/docker-compose.yml` - Docker setup (full or Keycloak-only)

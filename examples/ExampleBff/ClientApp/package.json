@@ -7,7 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "type-check": "vue-tsc --noEmit"
+    "type-check": "vue-tsc --noEmit",
+    "keycloak:start": "cd ../.. && docker-compose up keycloak keycloak-init -d",
+    "keycloak:stop": "cd ../.. && docker-compose stop keycloak",
+    "keycloak:logs": "cd ../.. && docker-compose logs -f keycloak",
+    "keycloak:wait": "node -e \"const h=require('https');const check=()=>h.get('https://localhost:8443/health/ready',{rejectUnauthorized:false},r=>{if(r.statusCode===200){console.log('Keycloak ready');process.exit(0)}else setTimeout(check,2000)}).on('error',()=>setTimeout(check,2000));console.log('Waiting for Keycloak...');check()\"",
+    "bff:start": "cd .. && dotnet run --launch-profile https",
+    "dev:full": "npm run keycloak:start && npm run keycloak:wait && concurrently -n BFF,Vite -c blue,green \"npm run bff:start\" \"npm run dev\""
   },
   "dependencies": {
     "axios": "^1.7.0",
@@ -19,6 +25,7 @@
     "@types/node": "^22.0.0",
     "@vitejs/plugin-vue": "^5.2.0",
     "@vue/language-plugin-pug": "^2.2.0",
+    "concurrently": "^9.1.0",
     "pug": "^3.0.3",
     "typescript": "~5.6.0",
     "vite": "^6.0.0",

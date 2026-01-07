@@ -241,8 +241,16 @@ The repository uses GitHub Actions with automated version management:
 
 ### Security Features
 
-- **Security Headers**: CSP, HSTS, X-Frame-Options (always enabled)
-- **Antiforgery (BFF)**: CSRF protection with custom token header/cookie names
+- **Security Headers**: CSP, HSTS, X-Frame-Options (always enabled in production, disabled in development for Vite compatibility)
+- **Secure Cookies (BFF)**: All cookies use strict security settings:
+  - `__Host-` prefix (browser-enforced: `Secure=true`, `Path=/`, no `Domain`)
+  - `SameSite=Strict` (CSRF protection)
+  - `HttpOnly=true` for auth cookies (no JavaScript access)
+  - HTTPS required for all environments (use mkcert for local development)
+- **Antiforgery (BFF)**: Dual-cookie CSRF protection:
+  - `__Host-X-XSRF-TOKEN` (HttpOnly server cookie)
+  - `X-XSRF-TOKEN` (client-readable cookie for JavaScript)
+  - Header validation on state-changing requests
 - **CORS**: Configurable origins, methods, headers, credentials
 - **API 404 Handling (BFF)**: Returns JSON for API routes, HTML for SPA routes
 
