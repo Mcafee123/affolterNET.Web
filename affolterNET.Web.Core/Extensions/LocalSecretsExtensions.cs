@@ -4,8 +4,10 @@ using Microsoft.Extensions.Configuration;
 
 namespace affolterNET.Web.Core.Extensions;
 
+[Obsolete("Don't use this anymore, stick to standard secrets approaches")]
 public static class LocalSecretsExtensions
 {
+    [Obsolete("Don't use this anymore, stick to standard secrets approaches")]
     public static IConfigurationBuilder AddLocalSecrets(this IConfigurationBuilder builder, string environment, string configFile)
     {
         var assemblyLocation = Assembly.GetExecutingAssembly().Location;

@@ -3,6 +3,7 @@ using System.Text.Json;
 
 namespace affolterNET.Web.Core.Configuration;
 
+[Obsolete("Don't use this anymore, stick to standard secrets approaches")]
 public class LocalSecretsConfigurationProvider(string secretsPath) : ConfigurationProvider
 {
     public override void Load()
