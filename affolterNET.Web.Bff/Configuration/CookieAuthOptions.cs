@@ -42,10 +42,10 @@ public class CookieAuthOptions: IConfigurableOptions<CookieAuthOptions>
     /// <param name="settings">Application settings containing environment and authentication mode</param>
     private CookieAuthOptions(AppSettings settings)
     {
-        Name = settings.IsDev ? "bff-auth" : "__Host-bff";
+        Name = "__Host-bff";
         HttpOnly = true;
-        Secure = !settings.IsDev; // Allow non-secure cookies in development
-        SameSite = settings.IsDev ? "Lax" : "Strict"; // More relaxed in development
+        Secure = true; // Required for __Host- prefix
+        SameSite = "Strict";
         ExpireTimeSpan = settings.IsDev ? TimeSpan.FromHours(4) : TimeSpan.FromHours(8); // Shorter session in development
         SlidingExpiration = true;
     }

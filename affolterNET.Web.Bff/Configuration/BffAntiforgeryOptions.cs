@@ -46,8 +46,8 @@ public class BffAntiforgeryOptions: IConfigurableOptions<BffAntiforgeryOptions>
         ClientCookieName = "X-XSRF-TOKEN";
         HeaderName = "X-XSRF-TOKEN";
         CookiePath = "/";
-        SameSiteMode = settings.IsDev ? Microsoft.AspNetCore.Http.SameSiteMode.Lax : Microsoft.AspNetCore.Http.SameSiteMode.Strict;
-        RequireSecure = !settings.IsDev; // Allow non-secure cookies in development
+        SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+        RequireSecure = true; // Required for __Host- prefix
     }
 
     /// <summary>
