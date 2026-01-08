@@ -139,14 +139,16 @@ public class SecurityHeadersOptions: IConfigurableOptions<SecurityHeadersOptions
     public List<string> AllowedStyleSources { get; set; }
     
     /// <summary>
-    /// SHA-256 hashes for specific inline styles that should be allowed
+    /// SHA-256 hashes for specific inline styles that should be allowed.
     /// Format: 'sha256-HASH' (e.g., 'sha256-RL3ie0nH+Lzz2YNqQN83mnU0J1ot4QL7b99vMdIX99w=')
     /// </summary>
+    [Obsolete("Style hashes are no longer used. The CSP now uses 'unsafe-inline' for style-src to support Vue/React SPAs.")]
     public List<string> AllowedStyleHashes { get; set; }
-    
+
     /// <summary>
-    /// Whether to allow 'unsafe-inline' styles (default: true for dev, false for prod)
+    /// Whether to allow 'unsafe-inline' styles. No longer used - inline styles are always allowed for SPA compatibility.
     /// </summary>
+    [Obsolete("Inline styles are now always allowed for Vue/React SPA compatibility. This property has no effect.")]
     public bool AllowInlineStyles { get; set; }
     
     /// <summary>

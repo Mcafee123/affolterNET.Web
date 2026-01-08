@@ -95,15 +95,6 @@ public class SecurityHeadersMiddleware(
 
         // Content-Security-Policy: Comprehensive CSP
         var csp = BuildContentSecurityPolicy(options, nonce);
-        
-        // Debug logging for CSP (remove in production)
-        Console.WriteLine($"[DEBUG] Generated CSP: {csp}");
-        Console.WriteLine($"[DEBUG] Custom directives count: {options.CustomCspDirectives.Count}");
-        foreach (var (key, value) in options.CustomCspDirectives)
-        {
-            Console.WriteLine($"[DEBUG] Custom directive: {key} = {value}");
-        }
-        
         headers.Append("Content-Security-Policy", csp);
     }
 
@@ -142,45 +133,23 @@ public class SecurityHeadersMiddleware(
             formAction += $" {options.IdpHost}";
         directives.Add($"form-action {formAction}");
 
-        // Script sources
-        var scriptSrc = "'self'";
+        // Script sources with strict-dynamic for trusted script chains
+        var scriptSrc = $"'nonce-{nonce}' 'strict-dynamic'";
         if (options.AllowedScriptSources.Count > 0)
             scriptSrc += " " + string.Join(" ", options.AllowedScriptSources);
         if (!string.IsNullOrEmpty(options.FrontendUrl))
             scriptSrc += $" {options.FrontendUrl}";
         directives.Add($"script-src {scriptSrc}");
 
-        // Style sources
-        Console.WriteLine($"[DEBUG] Checking for custom style-src directive...");
-        Console.WriteLine($"[DEBUG] CustomCspDirectives contains style-src: {options.CustomCspDirectives.ContainsKey("style-src")}");
-        
+        // Style sources - always allow unsafe-inline for Vue/React SPA compatibility
         if (!options.CustomCspDirectives.ContainsKey("style-src"))
         {
-            var styleSrc = "'self'";
-            if (options.AllowInlineStyles)
-            {
-                styleSrc += " 'unsafe-inline'";
-                Console.WriteLine($"[DEBUG] Adding 'unsafe-inline' for development");
-            }
-            
-            // Always add style hashes if they exist (for both dev and prod)
-            if (options.AllowedStyleHashes.Count > 0)
-            {
-                // Add specific style hashes (e.g., for Swagger) and 'unsafe-hashes' directive
-                styleSrc += " " + string.Join(" ", options.AllowedStyleHashes) + " 'unsafe-hashes'";
-                Console.WriteLine($"[DEBUG] Adding style hashes: {string.Join(" ", options.AllowedStyleHashes)}");
-            }
-            
+            var styleSrc = "'self' 'unsafe-inline'";
             if (options.AllowedStyleSources.Count > 0)
                 styleSrc += " " + string.Join(" ", options.AllowedStyleSources);
             if (!string.IsNullOrEmpty(options.FrontendUrl))
                 styleSrc += $" {options.FrontendUrl}";
-            Console.WriteLine($"[DEBUG] Final style-src: {styleSrc}");
             directives.Add($"style-src {styleSrc}");
-        }
-        else
-        {
-            Console.WriteLine($"[DEBUG] Using custom style-src directive");
         }
 
         // Connect sources (for API calls, WebSocket, etc.)
