@@ -26,7 +26,7 @@ public class UserController(IClaimsEnrichmentService claimsEnrichmentService) : 
             {
                 IsAuthenticated = false,
                 NameClaimType = ClaimTypes.Name,
-                RoleClaimType = ClaimTypes.Role,
+                RoleClaimType = "roles",
                 Claims = Array.Empty<object>()
             });
         }
@@ -39,7 +39,7 @@ public class UserController(IClaimsEnrichmentService claimsEnrichmentService) : 
         {
             IsAuthenticated = true,
             NameClaimType = ClaimTypes.Name,
-            RoleClaimType = ClaimTypes.Role,
+            RoleClaimType = "roles",
             Claims = User.Claims.Select(c => new { Type = c.Type, Value = c.Value }).ToArray(),
             UserContext = userContext // Additional enriched data
         });
