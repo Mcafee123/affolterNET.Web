@@ -167,6 +167,9 @@ public static class ServiceCollectionExtensions
                 options.MapInboundClaims = false;
                 options.GetClaimsFromUserInfoEndpoint = true;
 
+                // Use Keycloak's "roles" claim for ASP.NET Core role authorization
+                options.TokenValidationParameters.RoleClaimType = "roles";
+
                 // BFF pattern: Prevent automatic redirects to IDP
                 // When [Authorize] fails, it challenges the DefaultChallengeScheme (OIDC)
                 // We intercept here and return 401
