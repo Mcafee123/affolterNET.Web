@@ -29,6 +29,7 @@ public class BffOptions: IConfigurableOptions<BffOptions>
         options.EnableHttpsRedirection = EnableHttpsRedirection;
         options.EnableNoUnauthorizedRedirect = EnableNoUnauthorizedRedirect;
         options.EnableRptTokens = EnableRptTokens;
+        options.EnableResponseCompression = EnableResponseCompression;
         options.EnableStaticFiles = EnableStaticFiles;
         options.EnableTokenRefresh = EnableTokenRefresh;
         options.ErrorPath = ErrorPath;
@@ -57,6 +58,7 @@ public class BffOptions: IConfigurableOptions<BffOptions>
         EnableAntiforgery = true;
         EnableHttpsRedirection = true;
         EnableNoUnauthorizedRedirect = true;
+        EnableResponseCompression = true;
         EnableRptTokens = true;
         EnableStaticFiles = true;
         EnableTokenRefresh = true;
@@ -109,6 +111,15 @@ public class BffOptions: IConfigurableOptions<BffOptions>
     /// Whether to enable RPT tokens for permission-based auth
     /// </summary>
     public bool EnableRptTokens { get; set; }
+
+    /// <summary>
+    /// Whether to compress responses (brotli + gzip), including application/json.
+    /// On by default: an uncompressed SPA bundle and uncompressed API answers were costing a
+    /// factor of four on the wire in every app built on this library (found in ShelterBox
+    /// 2026-08-07, where a 1.4 MB bundle and a JSON list of 14'000 rows went out as-is).
+    /// Turn it off only when a reverse proxy in front already compresses.
+    /// </summary>
+    public bool EnableResponseCompression { get; set; }
 
     /// <summary>
     /// Whether to enable static files
