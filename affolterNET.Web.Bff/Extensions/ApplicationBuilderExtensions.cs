@@ -42,10 +42,18 @@ public static class ApplicationBuilderExtensions
             app.UseMiddleware<SecurityHeadersMiddleware>();
         }
 
-        // 2.5. REQUEST LOGGING (opt-in, skips excluded paths like /health/)
+        // 2.5. REQUEST LOGGING — Serilog's own, one summary line per request instead of the four
+        // ASP.NET Core writes by itself. The level is chosen per request (excluded paths
+        // Verbose, 4xx Warning, failures Error), so a noisy probe disappears at normal levels
+        // while nothing that matters is ever hidden — and Serilog__MinimumLevel__Default=Verbose
+        // brings it all back without a deployment. See LoggingExtensions.ConfigureRequestLogging.
+        //
+        // The size middleware sits DIRECTLY INSIDE it: it must finish counting before the line
+        // is written, and it must wrap every writer downstream.
         if (bffOptions.RequestLogging.Enabled)
         {
-            app.UseMiddleware<RequestLoggingMiddleware>();
+            app.ConfigureRequestLogging(bffOptions.RequestLogging);
+            app.UseMiddleware<ResponseSizeMiddleware>();
         }
 
         // 3. HTTPS REDIRECTION

@@ -17,10 +17,13 @@ public static class ApplicationBuilderExtensions
             app.UseMiddleware<SecurityHeadersMiddleware>();
         }
         
-        // 1.5. REQUEST LOGGING (opt-in, skips excluded paths like /health/)
+        // 1.5. REQUEST LOGGING — Serilog's own, one summary line per request; level chosen per
+        // request so excluded paths stay quiet without hiding failures. Same setup as the BFF,
+        // see LoggingExtensions.ConfigureRequestLogging.
         if (apiOptions.RequestLogging.Enabled)
         {
-            app.UseMiddleware<RequestLoggingMiddleware>();
+            app.ConfigureRequestLogging(apiOptions.RequestLogging);
+            app.UseMiddleware<ResponseSizeMiddleware>();
         }
 
         // 2. API DOCUMENTATION (Swagger/OpenAPI) - After security, before routing
