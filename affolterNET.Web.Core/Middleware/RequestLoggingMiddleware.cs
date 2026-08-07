@@ -39,9 +39,19 @@ public class RequestLoggingMiddleware(
                 new StreamResponseBodyFeature(counter, originalBody));
         }
 
+        // The status code is only final when nothing threw: an exception travels UP to the error
+        // handler, which sets 500 AFTER this middleware's finally block has run. Reporting
+        // Response.StatusCode blindly logged "200" for a request that had in fact crashed — the
+        // most misleading line a log can carry. Remember the exception and say so instead.
+        Exception? failure = null;
         try
         {
             await next(context);
+        }
+        catch (Exception ex)
+        {
+            failure = ex;
+            throw;
         }
         finally
         {
@@ -56,11 +66,13 @@ public class RequestLoggingMiddleware(
             // The byte count is what the application WROTE. When response compression is on, the
             // wire carries less — the Content-Encoding tells you which of the two you are seeing.
             logger.LogInformation(
-                "Response: {Method} {Path} -> {StatusCode} in {ElapsedMs} ms, {Bytes} bytes written"
+                "Response: {Method} {Path} -> {Outcome} in {ElapsedMs} ms, {Bytes} bytes written"
                 + "{Encoding} (endpoint {Endpoint})",
                 context.Request.Method,
                 path,
-                context.Response.StatusCode,
+                failure is null
+                    ? context.Response.StatusCode.ToString()
+                    : $"FAILED ({failure.GetType().Name})",
                 (int)elapsed.TotalMilliseconds,
                 counter?.BytesWritten ?? context.Response.ContentLength ?? 0,
                 context.Response.Headers.ContentEncoding.Count > 0
