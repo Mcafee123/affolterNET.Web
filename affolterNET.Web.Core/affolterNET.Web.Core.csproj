@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>affolterNET.Web.Core</PackageId>
-    <Version>0.9.4</Version>
+    <Version>0.9.5</Version>
     <Authors>affolterNET</Authors>
     <Description>Core authentication and authorization components for web applications</Description>
     
@@ -41,6 +41,11 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.9" />
+    <!-- Logging is owned by the library, not re-invented per application: Serilog.AspNetCore
+         brings UseSerilogRequestLogging, Settings.Configuration makes every level, sink and
+         filter steerable from appsettings/environment variables. See LoggingExtensions. -->
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
     <!-- Pins a patched version over the vulnerable 8.0.2 that DataProtection.Blobs 1.4.0
          pulls in transitively (8 high advisories, e.g. GHSA-37gx-xxp4-5rgx). Bumping Blobs
