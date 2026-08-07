@@ -6,7 +6,9 @@ using affolterNET.Web.Bff.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using affolterNET.Web.Core.Extensions;
@@ -61,7 +63,46 @@ public static class ServiceCollectionExtensions
         // Add BFF supporting services
         services.AddAntiforgeryServicesInternal(bffOptions.AntiForgery);
         services.AddReverseProxyInternal(configuration);
+        services.AddResponseCompressionInternal(bffOptions.Bff);
         return bffOptions;
+    }
+
+    /// <summary>
+    /// Compresses responses with brotli and gzip, including the content types an SPA + JSON API
+    /// actually ships. ASP.NET Core compresses nothing by default and its default MIME list does
+    /// not even cover application/json, so every app on this library was sending its bundle and
+    /// its API answers uncompressed (found in ShelterBox 2026-08-07: a 1.4 MB JS bundle and a
+    /// JSON list of 14'000 rows, both raw — roughly a factor of four wasted on the wire).
+    ///
+    /// BREACH: compression over HTTPS can leak a secret that the response echoes back from the
+    /// request. The BFF's secret is the antiforgery token, and that travels in a cookie and a
+    /// header, not in a compressed body — so the risk does not apply here. An application that
+    /// does echo secrets into responses can turn this off via Bff.EnableResponseCompression.
+    /// </summary>
+    private static IServiceCollection AddResponseCompressionInternal(
+        this IServiceCollection services, BffOptions bffOptions)
+    {
+        if (!bffOptions.EnableResponseCompression)
+        {
+            return services;
+        }
+
+        services.AddResponseCompression(options =>
+        {
+            options.EnableForHttps = true;
+            options.Providers.Add<BrotliCompressionProvider>();
+            options.Providers.Add<GzipCompressionProvider>();
+            options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+            [
+                "application/json",
+                "application/javascript",
+                "text/javascript",
+                "image/svg+xml",
+                "application/manifest+json",
+            ]);
+        });
+
+        return services;
     }
 
     /// <summary>

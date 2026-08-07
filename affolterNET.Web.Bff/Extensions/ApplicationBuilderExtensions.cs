@@ -29,6 +29,13 @@ public static class ApplicationBuilderExtensions
             app.UseExceptionHandler(bffOptions.Bff.ErrorPath);
         }
 
+        // 1.5. RESPONSE COMPRESSION (before everything that writes a body — static files, the
+        // SPA host page, the API. Sitting this early is what lets it wrap those writers.)
+        if (bffOptions.Bff.EnableResponseCompression)
+        {
+            app.UseResponseCompression();
+        }
+
         // 2. SECURITY HEADERS (Always second - protects ALL responses)
         if (bffOptions.EnableSecurityHeaders)
         {
