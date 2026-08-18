@@ -18,10 +18,10 @@ For complete reference, see [Library Guide](../../LIBRARY_GUIDE.md).
   "affolterNET": {
     "Web": {
       "Swagger": {
-        "Enabled": true,
+        "EnableSwagger": true,
+        "RequireAuthentication": true,
         "Title": "My API",
-        "Version": "v1",
-        "Description": "API documentation for My Application"
+        "Version": "v1"
       }
     }
   }
@@ -34,11 +34,11 @@ For complete reference, see [Library Guide](../../LIBRARY_GUIDE.md).
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Enabled` | bool | `true` (dev) | Enable Swagger UI and endpoint |
-| `Title` | string | `"API"` | API title in Swagger UI |
+| `EnableSwagger` | bool | `true` in dev, `false` otherwise | Enable Swagger UI and endpoint |
+| `RequireAuthentication` | bool | `true` | Gate /swagger behind authentication (JWT Bearer challenge answers 401; no effect with `AuthenticationMode.None`) |
+| `Title` | string | assembly name + env | API title in Swagger UI |
 | `Version` | string | `"v1"` | API version |
-| `Description` | string | `null` | API description |
-| `RoutePrefix` | string | `"swagger"` | URL prefix for Swagger UI |
+| `ShowHealthEndpoints` | bool | `true` | Include health endpoints in the document |
 
 ## Common Patterns
 
@@ -49,14 +49,14 @@ For complete reference, see [Library Guide](../../LIBRARY_GUIDE.md).
   "affolterNET": {
     "Web": {
       "Swagger": {
-        "Enabled": true
+        "EnableSwagger": true
       }
     }
   }
 }
 ```
 
-In production, set `Enabled` to `false` or remove the configuration.
+In production Swagger is off by default; enable it explicitly with `EnableSwagger: true` (it stays behind authentication unless `RequireAuthentication` is disabled).
 
 ### Custom Route
 

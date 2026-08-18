@@ -18,10 +18,10 @@ For complete reference, see [Library Guide](../../LIBRARY_GUIDE.md).
   "affolterNET": {
     "Web": {
       "Swagger": {
-        "Enabled": true,
+        "EnableSwagger": true,
+        "RequireAuthentication": true,
         "Title": "My BFF API",
-        "Version": "v1",
-        "Description": "Backend-for-Frontend API documentation"
+        "Version": "v1"
       }
     }
   }
@@ -32,11 +32,11 @@ For complete reference, see [Library Guide](../../LIBRARY_GUIDE.md).
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Enabled` | bool | `true` (dev) | Enable Swagger UI |
-| `Title` | string | `"API"` | API title |
+| `EnableSwagger` | bool | `true` in dev, `false` otherwise | Enable Swagger UI |
+| `RequireAuthentication` | bool | `true` | Gate /swagger behind a signed-in user (challenge redirects to the login; no effect with `AuthenticationMode.None`) |
+| `Title` | string | assembly name + env | API title |
 | `Version` | string | `"v1"` | API version |
-| `Description` | string | `null` | API description |
-| `RoutePrefix` | string | `"swagger"` | URL prefix |
+| `ShowHealthEndpoints` | bool | `true` | Include health endpoints in the document |
 
 ## BFF-Specific Endpoints
 
