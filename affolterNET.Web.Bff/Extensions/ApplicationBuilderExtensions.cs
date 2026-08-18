@@ -77,6 +77,12 @@ public static class ApplicationBuilderExtensions
         // 5. API DOCUMENTATION (Swagger/OpenAPI) - After security, before routing
         if (bffOptions.Swagger.EnableSwagger)
         {
+            // Swagger requests terminate here, before UseAuthentication - so the gate
+            // authenticates explicitly and challenges anonymous users to the login.
+            if (bffOptions.Swagger.RequireAuthentication && bffOptions.Bff.AuthMode != AuthenticationMode.None)
+            {
+                app.UseMiddleware<SwaggerAuthMiddleware>();
+            }
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {

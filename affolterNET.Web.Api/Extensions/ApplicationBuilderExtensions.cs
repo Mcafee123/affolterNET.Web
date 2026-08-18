@@ -29,6 +29,12 @@ public static class ApplicationBuilderExtensions
         // 2. API DOCUMENTATION (Swagger/OpenAPI) - After security, before routing
         if (apiOptions.Swagger.EnableSwagger)
         {
+            // Swagger requests terminate here, before UseAuthentication - the gate
+            // authenticates explicitly; with JWT Bearer a challenge answers 401.
+            if (apiOptions.Swagger.RequireAuthentication && apiOptions.ApiJwtBearer.AuthMode != AuthenticationMode.None)
+            {
+                app.UseMiddleware<SwaggerAuthMiddleware>();
+            }
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {

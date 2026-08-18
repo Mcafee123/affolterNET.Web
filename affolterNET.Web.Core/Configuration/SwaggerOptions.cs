@@ -24,6 +24,7 @@ public class SwaggerOptions: IConfigurableOptions<SwaggerOptions>
     public void CopyTo(SwaggerOptions target)
     {
         target.EnableSwagger = EnableSwagger;
+        target.RequireAuthentication = RequireAuthentication;
         target.Title = Title;
         target.Version = Version;
         target.ShowHealthEndpoints = ShowHealthEndpoints;
@@ -45,12 +46,23 @@ public class SwaggerOptions: IConfigurableOptions<SwaggerOptions>
         var env = settings.IsDev ? "DEV" : "PROD";
         Title = $"{Assembly.GetEntryAssembly()?.GetName().Name} - {env} - API";
         Version = "v1";
-        EnableSwagger = true;
+        // Swagger discloses the full API surface - on by default only during development.
+        // Production environments opt in explicitly (EnableSwagger = true in config).
+        EnableSwagger = settings.IsDev;
+        RequireAuthentication = true;
         ShowHealthEndpoints = true;
     }
 
     public string Title { get; set; }
     public string Version { get; set; }
     public bool EnableSwagger { get; set; }
+
+    /// <summary>
+    /// Require a signed-in user for /swagger (default: true). Only effective when an
+    /// authentication mode is configured - with AuthenticationMode.None there is no
+    /// scheme to authenticate against and Swagger is served without a gate.
+    /// </summary>
+    public bool RequireAuthentication { get; set; }
+
     public bool ShowHealthEndpoints { get; set; }
 }
