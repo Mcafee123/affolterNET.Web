@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>affolterNET.Web.Mcp</PackageId>
+    <Version>0.9.7</Version>
+    <Authors>affolterNET</Authors>
+    <Description>OAuth 2.1 resource-server components for Model Context Protocol (MCP) endpoints in affolterNET applications</Description>
+
+    <!-- NuGet Package Metadata -->
+    <PackageProjectUrl>https://github.com/affolterNET/affolterNET.Web</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/affolterNET/affolterNET.Web.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>authentication;authorization;asp.net-core;mcp;oauth;jwt;bearer-token</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>See https://github.com/affolterNET/affolterNET.Web/commits for recent changes.</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../affolterNET.Web.Core/affolterNET.Web.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="affolterNET.Web.Mcp.Test" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.4.0" />
+  </ItemGroup>
+
+</Project>

@@ -157,6 +157,7 @@ jobs:
         dotnet build affolterNET.Web.Core/affolterNET.Web.Core.csproj --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
         dotnet build affolterNET.Web.Api/affolterNET.Web.Api.csproj --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
         dotnet build affolterNET.Web.Bff/affolterNET.Web.Bff.csproj --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+        dotnet build affolterNET.Web.Mcp/affolterNET.Web.Mcp.csproj --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
 
     - name: Switch to NuGet references for packaging
       run: |
@@ -198,6 +199,16 @@ jobs:
           --include-source \
           -p:SymbolPackageFormat=snupkg
         
+        # Pack Mcp package
+        dotnet pack affolterNET.Web.Mcp/affolterNET.Web.Mcp.csproj \
+          --configuration ${{ env.BUILD_CONFIGURATION }} \
+          --no-restore \
+          --no-build \
+          --output ./packages \
+          --include-symbols \
+          --include-source \
+          -p:SymbolPackageFormat=snupkg
+        
         echo "Created packages:"
         ls -la ./packages/
 
@@ -221,7 +232,8 @@ jobs:
         echo "Publishing packages to NuGet.org..."
         for package in ./packages/affolterNET.Web.Core.*.nupkg \
                       ./packages/affolterNET.Web.Api.*.nupkg \
-                      ./packages/affolterNET.Web.Bff.*.nupkg; do
+                      ./packages/affolterNET.Web.Bff.*.nupkg \
+                      ./packages/affolterNET.Web.Mcp.*.nupkg; do
           # Skip if it's a symbol package
           if [[ $package == *.snupkg ]]; then
             continue
@@ -257,13 +269,15 @@ jobs:
         - affolterNET.Web.Core v$VERSION
         - affolterNET.Web.Api v$VERSION  
         - affolterNET.Web.Bff v$VERSION
+        - affolterNET.Web.Mcp v$VERSION
         
         🔗 NuGet Gallery: https://www.nuget.org/profiles/affolterNET
         
         📋 Installation:
         dotnet add package affolterNET.Web.Core --version $VERSION
         dotnet add package affolterNET.Web.Api --version $VERSION
-        dotnet add package affolterNET.Web.Bff --version $VERSION"
+        dotnet add package affolterNET.Web.Bff --version $VERSION
+        dotnet add package affolterNET.Web.Mcp --version $VERSION"
         
         # Push tag to origin
         git push origin "$TAG_NAME"
@@ -284,12 +298,14 @@ jobs:
         echo "- [affolterNET.Web.Core](https://www.nuget.org/packages/affolterNET.Web.Core/$VERSION)" >> $GITHUB_STEP_SUMMARY
         echo "- [affolterNET.Web.Api](https://www.nuget.org/packages/affolterNET.Web.Api/$VERSION)" >> $GITHUB_STEP_SUMMARY
         echo "- [affolterNET.Web.Bff](https://www.nuget.org/packages/affolterNET.Web.Bff/$VERSION)" >> $GITHUB_STEP_SUMMARY
+        echo "- [affolterNET.Web.Mcp](https://www.nuget.org/packages/affolterNET.Web.Mcp/$VERSION)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 🚀 Installation:" >> $GITHUB_STEP_SUMMARY
         echo '```bash' >> $GITHUB_STEP_SUMMARY
         echo "dotnet add package affolterNET.Web.Core --version $VERSION" >> $GITHUB_STEP_SUMMARY
         echo "dotnet add package affolterNET.Web.Api --version $VERSION" >> $GITHUB_STEP_SUMMARY
         echo "dotnet add package affolterNET.Web.Bff --version $VERSION" >> $GITHUB_STEP_SUMMARY
+        echo "dotnet add package affolterNET.Web.Mcp --version $VERSION" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 🔗 Links:" >> $GITHUB_STEP_SUMMARY

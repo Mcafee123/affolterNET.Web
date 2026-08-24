@@ -11,6 +11,7 @@ This library collection provides flexible authentication and authorization modes
 | **affolterNET.Web.Core** | [![NuGet](https://img.shields.io/nuget/v/affolterNET.Web.Core.svg)](https://www.nuget.org/packages/affolterNET.Web.Core/) | Core authentication and authorization components |
 | **affolterNET.Web.Api** | [![NuGet](https://img.shields.io/nuget/v/affolterNET.Web.Api.svg)](https://www.nuget.org/packages/affolterNET.Web.Api/) | API authentication components |
 | **affolterNET.Web.Bff** | [![NuGet](https://img.shields.io/nuget/v/affolterNET.Web.Bff.svg)](https://www.nuget.org/packages/affolterNET.Web.Bff/) | BFF authentication with YARP reverse proxy integration |
+| **affolterNET.Web.Mcp** | [![NuGet](https://img.shields.io/nuget/v/affolterNET.Web.Mcp.svg)](https://www.nuget.org/packages/affolterNET.Web.Mcp/) | OAuth 2.1 protection for MCP endpoints |
 
 ### Installation
 
@@ -23,6 +24,9 @@ dotnet add package affolterNET.Web.Api
 
 # For BFF (Backend-for-Frontend) with YARP
 dotnet add package affolterNET.Web.Bff
+
+# For an OAuth-protected MCP endpoint
+dotnet add package affolterNET.Web.Mcp
 ```
 
 ## Claude Code Integration
@@ -95,6 +99,71 @@ To publish to NuGet.org:
 3. Packages will be automatically published
 
 This library provides flexible authentication and authorization modes for ASP.NET Core applications with YARP reverse proxy integration.
+
+## MCP Endpoints (affolterNET.Web.Mcp)
+
+Protects a Model Context Protocol endpoint as an OAuth 2.1 resource server, so
+MCP clients (Claude Code, Codex) sign in with Keycloak instead of carrying a
+static bearer token through a proxy.
+
+The package registers its **own** authentication schemes (`McpBearer`, `McpOAuth`),
+so the endpoint lives inside a cookie-based BFF without disturbing it: browser
+requests keep using the BFF session, MCP requests use the access token.
+
+```csharp
+// The MCP server itself stays with the application
+builder.Services.AddMcpServer().WithHttpTransport().WithTools<MyTools>();
+
+// …this only puts OAuth in front of it
+var mcpOptions = builder.Services.AddMcpAuthentication(appSettings, builder.Configuration);
+
+var app = builder.Build();
+app.ConfigureBffApp(bffOptions);   // or ConfigureApiApp
+app.MapMcpSecured();               // no-op when the endpoint is disabled
+```
+
+```json
+{
+  "affolterNET": {
+    "Web": {
+      "Mcp": {
+        "Enabled": true,
+        "Path": "/mcp",
+        "Audience": "my-mcp",
+        "RequiredScopes": [ "my.read" ],
+        "ResourceName": "My MCP server"
+      }
+    }
+  }
+}
+```
+
+`AuthorityBase` and `Realm` are inherited from `affolterNET:Web:Auth:Provider`
+unless the `Mcp` section overrides them.
+
+### What a client sees
+
+1. `POST /mcp` without a token → `401` with
+   `WWW-Authenticate: Bearer resource_metadata="https://host/.well-known/oauth-protected-resource/mcp"`
+2. The client fetches that document (RFC 9728) and finds the Keycloak realm.
+3. It runs an authorization-code flow with PKCE and retries with the token.
+
+### Keycloak notes
+
+- **`Audience` is mandatory.** Keycloak does not implement RFC 8707 resource
+  indicators, so a token is bound to this MCP server through an audience mapper
+  on the requested client scope — not through the `resource` parameter.
+- Clients can register themselves (Dynamic Client Registration / Client ID
+  Metadata Document, needs `--features=cimd`), or you pre-register one public
+  PKCE client with redirect URI `http://localhost:PORT/callback` and point the
+  CLI at it:
+
+```bash
+claude mcp add --transport http --client-id my-mcp-cli --callback-port 8080 \
+  my-server https://host/mcp
+codex mcp login my-server
+```
+
 
 ## Authentication Modes
 

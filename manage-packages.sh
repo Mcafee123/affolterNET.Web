@@ -43,7 +43,7 @@ check_prerequisites() {
     local dotnet_version=$(dotnet --version)
     log_success ".NET SDK version: $dotnet_version"
     
-    for project in "affolterNET.Web.Core" "affolterNET.Web.Api" "affolterNET.Web.Bff"; do
+    for project in "affolterNET.Web.Core" "affolterNET.Web.Api" "affolterNET.Web.Bff" "affolterNET.Web.Mcp"; do
         if [ ! -d "$project" ]; then
             log_error "Project directory not found: $project"
             exit 1
@@ -55,7 +55,7 @@ update_versions() {
     local version=$1
     log_info "Updating package versions to: $version"
     
-    for project in "affolterNET.Web.Core" "affolterNET.Web.Api" "affolterNET.Web.Bff"; do
+    for project in "affolterNET.Web.Core" "affolterNET.Web.Api" "affolterNET.Web.Bff" "affolterNET.Web.Mcp"; do
         local project_file="$project/$project.csproj"
         if [ -f "$project_file" ]; then
             sed -i.bak "s/<Version>.*<\/Version>/<Version>$version<\/Version>/g" "$project_file"
@@ -76,7 +76,7 @@ restore_dependencies() {
 build_projects() {
     log_info "Building projects..."
     
-    for project in "affolterNET.Web.Core" "affolterNET.Web.Api" "affolterNET.Web.Bff"; do
+    for project in "affolterNET.Web.Core" "affolterNET.Web.Api" "affolterNET.Web.Bff" "affolterNET.Web.Mcp"; do
         local project_file="$project/$project.csproj"
         if [ -f "$project_file" ]; then
             log_info "Building $project..."
@@ -105,7 +105,7 @@ pack_packages() {
     rm -f "$PACKAGES_OUTPUT"/*.nupkg "$PACKAGES_OUTPUT"/*.snupkg
     
     # Pack in dependency order
-    for project in "affolterNET.Web.Core" "affolterNET.Web.Api" "affolterNET.Web.Bff"; do
+    for project in "affolterNET.Web.Core" "affolterNET.Web.Api" "affolterNET.Web.Bff" "affolterNET.Web.Mcp"; do
         local project_file="$project/$project.csproj"
         if [ -f "$project_file" ]; then
             log_info "Packing $project..."
