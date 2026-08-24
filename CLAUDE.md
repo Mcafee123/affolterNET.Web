@@ -13,9 +13,10 @@ The repository contains three NuGet packages with dependency hierarchy:
 - **affolterNET.Web.Core** - Foundation layer with base classes, interfaces, middleware, and services
 - **affolterNET.Web.Api** - API package (depends on Core) for stateless JWT Bearer authentication
 - **affolterNET.Web.Bff** - BFF package (depends on Core) for stateful cookie-based auth with YARP reverse proxy
+- **affolterNET.Web.Mcp** - MCP package (depends on Core) that protects a Model Context Protocol endpoint as an OAuth 2.1 resource server; registers its own schemes so it composes with either of the above
 
 Test projects are in `Tests/`:
-- `affolterNET.Web.Core.Test`, `affolterNET.Web.Api.Test`, `affolterNET.Web.Bff.Test`
+- `affolterNET.Web.Core.Test`, `affolterNET.Web.Api.Test`, `affolterNET.Web.Bff.Test`, `affolterNET.Web.Mcp.Test`
 
 ## Development Commands
 
@@ -29,6 +30,7 @@ dotnet restore
 dotnet build affolterNET.Web.Core/affolterNET.Web.Core.csproj --configuration Release --no-restore
 dotnet build affolterNET.Web.Api/affolterNET.Web.Api.csproj --configuration Release --no-restore
 dotnet build affolterNET.Web.Bff/affolterNET.Web.Bff.csproj --configuration Release --no-restore
+dotnet build affolterNET.Web.Mcp/affolterNET.Web.Mcp.csproj --configuration Release --no-restore
 
 # Build entire solution
 dotnet build affolterNET.Web.sln --configuration Release
