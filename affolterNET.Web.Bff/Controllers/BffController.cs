@@ -15,7 +15,7 @@ public class BffController(IBffSessionService sessionService) : ControllerBase
     [HttpGet("login")]
     public IActionResult Login([FromQuery] string? returnUrl = null, [FromQuery] string? claimsChallenge = null)
     {
-        var redirectUri = !string.IsNullOrEmpty(returnUrl) ? returnUrl : "/";
+        var redirectUri = !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) ? returnUrl : "/";
         var properties = new AuthenticationProperties
         {
             RedirectUri = redirectUri
